@@ -1,0 +1,24 @@
+
+From: "Jeroen Tromp"
+To: komatitsch
+Subject:  course software 
+Date: Wed, 8 Jan 2003 14:04:45 -0800 
+
+Hi Dimitri:
+
+I am teaching part of a course in computational geophysics this 
+quarter. For 
+this reason I put together the basic software for students to do 1D 
+simulations of the wave equation and the diffusion equation based upon 
+the 
+spectral-element method. Attached the package. What I have in mind is to 
+give 
+them the basic subroutines lagrange_poly.f90, gll_library.f90, and 
+define_derivative_matrix.f90, and to ask them to write the small 
+programs 
+wave.f90 and diffusion.f90 based upon class notes. This way they can 
+get a 
+pretty good feel for how the method works.
+
+Jeroen
+
