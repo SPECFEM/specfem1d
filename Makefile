@@ -1,5 +1,9 @@
 O = obj
 
+# Dec Alpha
+#F90 = f90
+#FLAGS = -fast -warn truncated_source -warn argument_checking -warn unused -warn declarations -std95 -check nounderflow -check bounds
+
 # Portland compiler
 #F90 = pgf90
 #FLAGS = -fast -Mbounds -Mneginfo -Mdclchk -Mstandard -Knoieee

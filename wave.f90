@@ -61,8 +61,8 @@
   double precision deltat,deltatover2,deltatsqover2
 
 ! source
-  integer ispec_source,i_source,iglob_source
-  double precision stf,hdur,source_amp
+  integer ispec_source,i_source
+  double precision hdur,source_amp
   double precision, external :: source_time_function
 
 ! receiver
