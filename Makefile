@@ -17,6 +17,10 @@ O = obj
 F90 = ifort
 FLAGS = -O3 -e95 -implicitnone
 
+# g95 (free f95 compiler from http://www.g95.org, still under development, but works)
+#F90 = g95
+#FLAGS = -O
+
 wave: constants.h \
        $O/wave.o \
        $O/gll_library.o \
