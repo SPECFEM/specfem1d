@@ -213,8 +213,7 @@
 
 ! write out snapshots
     if(mod(itime-1,1000) == 0) then
-      write(moviefile,10) itime
-10    format('snapshot',i5.5)
+      write(moviefile,"('snapshot',i5.5)") itime
       open(unit=10,file=moviefile,status='unknown')
       do iglob = 1,NGLOB
         write(10,*) sngl(x(iglob)),sngl(temperature(iglob))
