@@ -1,25 +1,42 @@
+
+#=====================================================================
+#
+#               S p e c f e m 1 D  V e r s i o n  1 . 0
+#               ---------------------------------------
+#
+#                 Jeroen Tromp and Dimitri Komatitsch
+#    Seismological Laboratory - California Institute of Technology
+#         (c) California Institute of Technology November 2007
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+#=====================================================================
+
 O = obj
 
-# Dec Alpha
-#F90 = f90
-#FLAGS = -fast -warn truncated_source -warn argument_checking -warn unused -warn declarations -std95 -check nounderflow -check bounds
-
-# Portland compiler
+# Portland
 #F90 = pgf90
-#FLAGS = -fast -Mbounds -Mneginfo -Mdclchk -Mstandard -Knoieee
-#FLAGS = -fast -Mnobounds -Mneginfo -Mdclchk -Munroll=c:6 -Mstandard -Knoieee
+#FLAGS =-fast -Mnobounds -Minline -Mneginfo -Mdclchk -Knoieee -Minform=warn -fastsse -tp amd64e -Msmart
 
-# Absoft compiler
-#F90 = f90
-#FLAGS = -O2 -W132 -YEXT_NAMES=LCS  -s -B108 -YCFRL=1
+# Intel
+#F90 = ifort
+#FLAGS =-O3 -implicitnone -warn stderrors -warn truncated_source -warn argument_checking -warn unused -warn declarations -std95 -assume byterecl -check nobounds
 
-# Intel Linux compiler
-F90 = ifort
-FLAGS = -O3 -e95 -implicitnone
-
-# g95 (free f95 compiler from http://www.g95.org, still under development, but works)
-#F90 = g95
-#FLAGS = -O
+# GNU gfortran
+F90 = gfortran
+FLAGS  = -std=gnu -fimplicit-none -frange-check -O2 -Wunused-labels -Waliasing -Wampersand -Wsurprising -Wline-truncation -Wunderflow
 
 wave: constants.h \
        $O/wave.o \
@@ -50,6 +67,8 @@ bak:
 
 clean:
 	rm -f $O/*.o *.o snapshot* seismogram xwave xdiffusion
+
+all: clean wave diffusion
 
 $O/wave.o: constants.h wave.f90
 	${F90} $(FLAGS) -c -o $O/wave.o wave.f90
