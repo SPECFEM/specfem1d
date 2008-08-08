@@ -32,11 +32,11 @@ O = obj
 
 # Intel
 #F90 = ifort
-#FLAGS =-O3 -implicitnone -warn stderrors -warn truncated_source -warn argument_checking -warn unused -warn declarations -std95 -assume byterecl -check nobounds
+#FLAGS =-O3 -xP -vec-report0 -e03 -std03 -implicitnone -warn truncated_source -warn argument_checking -warn unused -warn declarations -warn alignments -warn ignore_loc -warn usage -check nobounds -align sequence -assume byterecl -fpe3 -ftz
 
 # GNU gfortran
 F90 = gfortran
-FLAGS  = -std=gnu -fimplicit-none -frange-check -O2 -Wunused-labels -Waliasing -Wampersand -Wsurprising -Wline-truncation -Wunderflow
+FLAGS  = -std=f2003 -fimplicit-none -frange-check -O2 -Wunused-labels -Waliasing -Wampersand -Wsurprising -Wline-truncation -Wunderflow
 
 wave: constants.h \
        $O/wave.o \
