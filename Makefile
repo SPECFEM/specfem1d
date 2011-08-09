@@ -36,7 +36,7 @@ O = obj
 
 # GNU gfortran
 F90 = gfortran
-FLAGS  = -std=f2003 -fimplicit-none -frange-check -O2 -Waliasing -Wampersand -Wsurprising -Wline-truncation -Wunderflow
+FLAGS  = -std=gnu -fimplicit-none -frange-check -O2 -fmax-errors=10 -pedantic -pedantic-errors -Waliasing -Wampersand -Wcharacter-truncation -Wline-truncation -Wsurprising -Wno-tabs -Wunderflow
 
 wave: constants.h \
        $O/wave.o \
