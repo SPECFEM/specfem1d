@@ -251,7 +251,7 @@
       accel(NGLOB) = 0.
     endif
 
-! divide by the mass matrix
+! divide by the mass matrix, which is strictly (i.e. perfectly) diagonal
     accel(:) = accel(:)/mass_global(:)
 
 ! `corrector' update velocity
