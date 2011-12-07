@@ -66,7 +66,7 @@
   double precision, parameter :: THERMALCONDUCTIVITY = 10.0d-01 ! cal/m/s/K
   double precision, parameter :: HEATCAPACITY = 0.3d+03 ! cal/kg/K
 
-  integer ispec,i,j,iglob,itime
+  integer ispec,i,j,iglob,it
 
 ! Gauss-Lobatto-Legendre points of integration
   double precision, dimension(NGLL) :: xigll
@@ -87,7 +87,7 @@
   double precision, dimension(NGLL,NSPEC) :: rho,heat_capacity,thermal_conductivity
 
 ! Jacobian `matrix' and Jacobian
-  double precision, dimension(NGLL,NSPEC) :: dxidx,jacobian
+  double precision, dimension(NGLL,NSPEC) :: dxi_dx,jacobian
 
 ! local mass matrix
   double precision mass_local
@@ -112,7 +112,7 @@
   double precision temperature_1,temperature_NGLOB
 
 ! derivatives
-  double precision dtdx,flux,templ,temp(NGLL)
+  double precision dt_dx,flux,templ,temp(NGLL)
 
 ! movie
   character(len=50) moviefile
@@ -133,7 +133,7 @@
       rho(i,ispec) = DENSITY
       thermal_conductivity(i,ispec) = THERMALCONDUCTIVITY
       heat_capacity(i,ispec) = HEATCAPACITY
-      dxidx(i,ispec) = 2. / (x2(ispec)-x1(ispec))
+      dxi_dx(i,ispec) = 2. / (x2(ispec)-x1(ispec)) ! this is d(xi) / dx
       jacobian(i,ispec) = (x2(ispec)-x1(ispec)) / 2.
     enddo
   enddo
@@ -147,7 +147,7 @@
     enddo
   enddo
 
-! get the global grid points
+! compute the position of the global grid points
   do ispec = 1,NSPEC
     do i = 1,NGLL
       iglob = ibool(i,ispec)
@@ -155,7 +155,7 @@
     enddo
   enddo
 
-! calculate the global mass matrix
+! calculate the assembled global mass matrix
   mass_global(:) = 0.
   do ispec = 1,NSPEC
     do i = 1,NGLL
@@ -169,7 +169,7 @@
   dh = LENGTH/dble(NGLOB-1)
   diffusivity = THERMALCONDUCTIVITY/(HEATCAPACITY*DENSITY)
   time_step = 0.5*dh*dh/diffusivity
-!  print *,'time step estimate: ',time_step,' seconds'
+! print *,'time step estimate: ',time_step,' seconds'
 
   if(FIXED_BC) then
 ! set up the temperatures at the ends
@@ -190,7 +190,7 @@
   temperature(:) = 0.
   grad_temperature(:) = 0.
 
-  do itime = 1,NSTEP
+  do it = 1,NSTEP
 
 ! update temperature
     temperature(:) = temperature(:) + deltatover2*grad_temperature(:)
@@ -199,18 +199,18 @@
     do ispec = 1,NSPEC
 
       do i = 1,NGLL
-! get dtdx
+! compute dt_dx
         templ = 0.
         do j = 1,NGLL
           iglob = ibool(j,ispec)
           templ = templ + temperature(iglob)*hprime(i,j)
         enddo
-        dtdx = templ*dxidx(i,ispec)
+        dt_dx = templ*dxi_dx(i,ispec)
 
 ! heat flux
-        flux = -thermal_conductivity(i,ispec)*dtdx
+        flux = -thermal_conductivity(i,ispec)*dt_dx
 
-        temp(i) = jacobian(i,ispec)*flux*dxidx(i,ispec)
+        temp(i) = jacobian(i,ispec)*flux*dxi_dx(i,ispec)
       enddo ! first loop over the GLL points
 
       do i = 1,NGLL
@@ -235,8 +235,8 @@
         iglob = ibool(i,1)
         templ = templ + temperature(iglob)*hprime(1,i)
       enddo
-      dtdx = templ*dxidx(1,1)
-      flux_1 = -thermal_conductivity(1,1)*dtdx
+      dt_dx = templ*dxi_dx(1,1)
+      flux_1 = -thermal_conductivity(1,1)*dt_dx
 ! right side
       temperature(NGLOB) = temperature_NGLOB
       templ = 0.
@@ -244,8 +244,8 @@
         iglob = ibool(i,NSPEC)
         templ = templ + temperature(iglob)*hprime(NGLL,i)
       enddo
-      dtdx = templ*dxidx(NGLL,NSPEC)
-      flux_NGLOB = -thermal_conductivity(NGLL,NSPEC)*dtdx
+      dt_dx = templ*dxi_dx(NGLL,NSPEC)
+      flux_NGLOB = -thermal_conductivity(NGLL,NSPEC)*dt_dx
     endif
 
 ! add in the end fluxes
@@ -259,8 +259,8 @@
     temperature(:) = temperature(:) + deltatover2*grad_temperature(:)
 
 ! write out snapshots
-    if(mod(itime-1,1000) == 0) then
-      write(moviefile,"('snapshot',i5.5)") itime
+    if(mod(it-1,1000) == 0) then
+      write(moviefile,"('snapshot',i5.5)") it
       open(unit=10,file=moviefile,status='unknown')
       do iglob = 1,NGLOB
         write(10,*) sngl(x(iglob)),sngl(temperature(iglob))
@@ -271,3 +271,4 @@
   enddo ! end time loop
 
   end program diffusion
+

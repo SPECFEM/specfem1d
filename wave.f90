@@ -68,7 +68,7 @@
 ! pi
   double precision, parameter :: PI = 3.141592653589793d0
 
-  integer ispec,i,j,iglob,itime
+  integer ispec,i,j,iglob,it
 
 ! Gauss-Lobatto-Legendre points of integration
   double precision, dimension(NGLL) :: xigll
@@ -89,7 +89,7 @@
   double precision, dimension(NGLL,NSPEC) :: rho,mu
 
 ! Jacobian `matrix' and Jacobian
-  double precision, dimension(NGLL,NSPEC) :: dxidx,jacobian
+  double precision, dimension(NGLL,NSPEC) :: dxi_dx,jacobian
 
 ! local mass matrix
   double precision mass_local
@@ -104,7 +104,7 @@
   integer, dimension(NGLL,NSPEC) :: ibool
 
 ! time marching
-  double precision dh,v,courant,time_step
+  double precision dh,v,courant_CFL,time_step
   double precision deltat,deltatover2,deltatsqover2
 
 ! source
@@ -117,7 +117,7 @@
   double precision seismogram(NSTEP)
 
 ! derivatives
-  double precision dudx,sigma,templ,temp(NGLL)
+  double precision du_dxi,epsilon,sigma,templ,temp(NGLL)
 
 ! movie
   character(len=50) moviefile
@@ -137,7 +137,7 @@
     do i = 1,NGLL
       rho(i,ispec) = DENSITY
       mu(i,ispec) = RIGIDITY
-      dxidx(i,ispec) = 2. / (x2(ispec)-x1(ispec))
+      dxi_dx(i,ispec) = 2. / (x2(ispec)-x1(ispec)) ! this is d(xi) / dx
       jacobian(i,ispec) = (x2(ispec)-x1(ispec)) / 2.
     enddo
   enddo
@@ -151,7 +151,7 @@
     enddo
   enddo
 
-! get the global grid points
+! compute the position of the global grid points
   do ispec = 1,NSPEC
     do i = 1,NGLL
       iglob = ibool(i,ispec)
@@ -159,7 +159,7 @@
     enddo
   enddo
 
-! calculate the global mass matrix
+! calculate the assembled global mass matrix
   mass_global(:) = 0.
   do ispec = 1,NSPEC
     do i = 1,NGLL
@@ -172,9 +172,9 @@
 ! estimate the time step
   dh = LENGTH/dble(NGLOB-1)
   v = dsqrt(RIGIDITY/DENSITY)
-  courant = 0.2
-  time_step = courant*dh/v
-!  print *,'time step estimate: ',time_step,' seconds'
+  courant_CFL = 0.2
+  time_step = courant_CFL*dh/v
+! print *,'time step estimate: ',time_step,' seconds'
 
 ! set the source
   ispec_source = (NSPEC+1)/2
@@ -199,9 +199,9 @@
     displ(iglob) = dsin(PI*x(iglob)/LENGTH)
   enddo
 
-  do itime = 1,NSTEP
+  do it = 1,NSTEP
 
-! `predictor' update displacement using finite-difference time scheme (Newmark)
+! `predictor' update displacement using explicit finite-difference time scheme (Newmark)
     displ(:) = displ(:) + deltat*veloc(:) + deltatsqover2*accel(:)
     veloc(:) = veloc(:) + deltatover2*accel(:)
     accel(:) = 0.
@@ -209,18 +209,20 @@
     do ispec = 1,NSPEC
 
       do i = 1,NGLL
-! get dudx
-        templ = 0.
+! compute d(u) / d(xi)
+        du_dxi = 0.
         do j = 1,NGLL
           iglob = ibool(j,ispec)
-          templ = templ + displ(iglob)*hprime(i,j)
+          du_dxi = du_dxi + displ(iglob)*hprime(i,j)
         enddo
-        dudx = templ*dxidx(i,ispec)
+
+! strain
+        epsilon = du_dxi*dxi_dx(i,ispec)
 
 ! stress
-        sigma = mu(i,ispec)*dudx
+        sigma = mu(i,ispec)*epsilon
 
-        temp(i) = jacobian(i,ispec)*sigma*dxidx(i,ispec)
+        temp(i) = jacobian(i,ispec)*sigma*dxi_dx(i,ispec)
       enddo ! first loop over the GLL points
 
       do i = 1,NGLL
@@ -229,17 +231,19 @@
           templ = templ + temp(j)*hprime(j,i)*wgll(j)
         enddo
 
-! `corrector' update acceleration
+! `corrector' update of acceleration in the Newmark scheme
+! the minus sign comes from the integration by part done in the weak formulation of the equations
         iglob = ibool(i,ispec)
         accel(iglob) = accel(iglob) - templ
+
       enddo ! second loop over the GLL points
 
     enddo ! end loop over all spectral elements
 
 ! add source at global level
-!    iglob_source = ibool(ispec_source,i_source)
-!    stf = source_time_function(dble(itime-1)*DT-hdur,hdur)
-!    accel(iglob_source) = accel(iglob_source) + stf*source_amp
+!   iglob_source = ibool(ispec_source,i_source)
+!   stf = source_time_function(dble(it-1)*DT-hdur,hdur)
+!   accel(iglob_source) = accel(iglob_source) + stf*source_amp
 
 ! fixed boundary conditions at global level
     if(FIXED_BC) then
@@ -254,8 +258,8 @@
     veloc(:) = veloc(:) + deltatover2*accel(:)
 
 ! write out snapshots
-    if(mod(itime-1,1000) == 0) then
-      write(moviefile,"('snapshot',i5.5)") itime
+    if(mod(it-1,1000) == 0) then
+      write(moviefile,"('snapshot',i5.5)") it
       open(unit=10,file=moviefile,status='unknown')
       do iglob = 1,NGLOB
         write(10,*) sngl(x(iglob)),sngl(displ(iglob))
@@ -263,13 +267,13 @@
       close(10)
     endif
 
-    seismogram(itime) = displ(ireceiver)
+    seismogram(it) = displ(ireceiver)
 
   enddo ! end time loop
 
   open(unit=12,file='seismogram',status='unknown')
-  do itime = 1,NSTEP
-    write(12,*) sngl(dble(itime-1)*DT-hdur),sngl(seismogram(itime))
+  do it = 1,NSTEP
+    write(12,*) sngl(dble(it-1)*DT-hdur),sngl(seismogram(it))
   enddo
   close(12)
 
