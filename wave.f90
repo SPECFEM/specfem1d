@@ -216,7 +216,7 @@
           du_dxi = du_dxi + displ(iglob)*hprime(i,j)
         enddo
 
-! strain
+! strain (i.e., d(u) / dx in 1D)
         epsilon = du_dxi*dxi_dx(i,ispec)
 
 ! stress
