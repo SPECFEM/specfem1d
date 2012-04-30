@@ -25,14 +25,29 @@
 !=====================================================================
 
 ! number of spectral elements
-  integer, parameter :: NSPEC = 11
+  integer, parameter :: NSPEC = 250
 
 ! number of GLL points (polynomial degree plus one)
-  integer, parameter :: NGLL = 7
+  integer, parameter :: NGLL = 5
+
+! Courant–Friedrichs–Lewy (CFL) stability value
+! see e.g. http://en.wikipedia.org/wiki/Courant%E2%80%93Friedrichs%E2%80%93Lewy_condition
+  double precision, parameter :: courant_CFL = 0.20d0
+
+! number of time steps to compute
+  integer, parameter :: NSTEP = 20000
+
+! model parameters  (SI)
+  double precision, parameter :: LENGTH = 3.0d+03 ! m
+  double precision, parameter :: DENSITY = 2.5d+03 ! kg/m^3
+  double precision, parameter :: RIGIDITY = 3.0d+10 ! Pa
 
 ! number of global points
   integer, parameter :: NGLOB = (NGLL-1)*NSPEC + 1
 
 ! for the Gauss-Lobatto-Legendre points and weights
   double precision, parameter :: GAUSSALPHA = 0.d0,GAUSSBETA = 0.d0
+
+! pi
+  double precision, parameter :: PI = 3.141592653589793d0
 

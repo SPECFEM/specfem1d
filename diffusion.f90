@@ -51,18 +51,10 @@
 
   include "constants.h"
 
-! number of timesteps
-  integer, parameter :: NSTEP = 30000
-
-! time step in seconds
-  double precision, parameter :: DT = 100000000. ! s
-
 ! fixed boundary conditions
   logical, parameter :: FIXED_BC = .true.
 
 ! model parameters  (SI)
-  double precision, parameter :: LENGTH = 3.0d+03 ! m
-  double precision, parameter :: DENSITY = 2.5d+03 ! kg/m^3
   double precision, parameter :: THERMALCONDUCTIVITY = 10.0d-01 ! cal/m/s/K
   double precision, parameter :: HEATCAPACITY = 0.3d+03 ! cal/kg/K
 
@@ -103,7 +95,7 @@
 
 ! time marching
   double precision deltat,deltatover2,deltatsqover2
-  double precision dh,diffusivity,time_step
+  double precision dh,diffusivity
 
 ! end fluxes
   double precision flux_1,flux_NGLOB
@@ -168,8 +160,9 @@
 ! estimate the time step
   dh = LENGTH/dble(NGLOB-1)
   diffusivity = THERMALCONDUCTIVITY/(HEATCAPACITY*DENSITY)
-  time_step = 0.5*dh*dh/diffusivity
-! print *,'time step estimate: ',time_step,' seconds'
+!!!!!!  deltat = 0.5*dh*dh/diffusivity
+  deltat = 800000.
+  print *,'time step estimate: ',deltat,' seconds'
 
   if(FIXED_BC) then
 ! set up the temperatures at the ends
@@ -182,7 +175,6 @@
   endif
 
 ! time marching parameters
-  deltat = DT
   deltatover2 = deltat/2.
   deltatsqover2 = deltat*deltat/2.
 
@@ -259,7 +251,8 @@
     temperature(:) = temperature(:) + deltatover2*grad_temperature(:)
 
 ! write out snapshots
-    if(mod(it-1,1000) == 0) then
+    if(mod(it,100) == 0) then
+      print *,'time step ',it,' out of ',NSTEP
       write(moviefile,"('snapshot',i5.5)") it
       open(unit=10,file=moviefile,status='unknown')
       do iglob = 1,NGLOB

@@ -39,10 +39,10 @@
   alpha = decay_rate/hdur
 
 ! Gaussian
-  source_time_function = alpha*exp(-alpha*alpha*t*t)/sqrt(PI)
+! source_time_function = alpha*exp(-alpha*alpha*t*t)/sqrt(PI)
 
 ! Ricker wavelet
-!  source_time_function = -2.*(alpha**3)*t*exp(-alpha*alpha*t*t)/sqrt(PI)
+   source_time_function = -2.*(alpha**3)*t*exp(-alpha*alpha*t*t)/sqrt(PI)
 
   end function source_time_function
 

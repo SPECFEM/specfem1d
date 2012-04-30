@@ -51,22 +51,11 @@
 
   include "constants.h"
 
-! number of timesteps
-  integer, parameter :: NSTEP = 10000
-
-! time step in seconds
-  double precision, parameter :: DT = 0.0002 ! s
+! use a plane wave source or a point source (a force)
+  logical, parameter :: USE_PLANE_WAVE_SOURCE = .false.
 
 ! fixed boundary conditions
   logical, parameter :: FIXED_BC = .true.
-
-! model parameters  (SI)
-  double precision, parameter :: LENGTH = 3.0d+03 ! m
-  double precision, parameter :: DENSITY = 2.5d+03 ! kg/m^3
-  double precision, parameter :: RIGIDITY = 3.0d+10 ! Pa
-
-! pi
-  double precision, parameter :: PI = 3.141592653589793d0
 
   integer ispec,i,j,iglob,it
 
@@ -104,12 +93,12 @@
   integer, dimension(NGLL,NSPEC) :: ibool
 
 ! time marching
-  double precision dh,v,courant_CFL,time_step
+  double precision dh,v
   double precision deltat,deltatover2,deltatsqover2
 
 ! source
-  integer ispec_source,i_source
-  double precision hdur,source_amp
+  integer ispec_source,i_source,iglob_source
+  double precision hdur,source_amp,stf
   double precision, external :: source_time_function
 
 ! receiver
@@ -169,35 +158,35 @@
     enddo
   enddo
 
-! estimate the time step
+! estimate the time step in seconds
   dh = LENGTH/dble(NGLOB-1)
   v = dsqrt(RIGIDITY/DENSITY)
-  courant_CFL = 0.2
-  time_step = courant_CFL*dh/v
-! print *,'time step estimate: ',time_step,' seconds'
+  deltat = courant_CFL*dh/v
+  print *,'time step estimate: ',deltat,' seconds'
 
 ! set the source
-  ispec_source = (NSPEC+1)/2
-  i_source = (NGLL+1)/2
-  hdur = 50.*DT
-  source_amp = 0.001
+  ispec_source = NSPEC/2
+  i_source = 2
+  hdur = 500.*deltat
+  source_amp = 10000000.d0
 
 ! set the receiver
   ireceiver = 2*NGLL-2
 
 ! time marching parameters
-  deltat = DT
   deltatover2 = deltat/2.
   deltatsqover2 = deltat*deltat/2.
 
-! initialize
+! initialize the fields to zero
   displ(:) = 0.
   veloc(:) = 0.
   accel(:) = 0.
 
-  do iglob = 1,NGLOB
-    displ(iglob) = dsin(PI*x(iglob)/LENGTH)
-  enddo
+  if(USE_PLANE_WAVE_SOURCE) then
+    do iglob = 1,NGLOB
+      displ(iglob) = dsin(PI*x(iglob)/LENGTH)
+    enddo
+  endif
 
   do it = 1,NSTEP
 
@@ -241,9 +230,11 @@
     enddo ! end loop over all spectral elements
 
 ! add source at global level
-!   iglob_source = ibool(ispec_source,i_source)
-!   stf = source_time_function(dble(it-1)*DT-hdur,hdur)
-!   accel(iglob_source) = accel(iglob_source) + stf*source_amp
+  if(.not. USE_PLANE_WAVE_SOURCE) then
+    iglob_source = ibool(i_source,ispec_source)
+    stf = source_time_function(dble(it-1)*deltat-hdur,hdur)
+    accel(iglob_source) = accel(iglob_source) + stf*source_amp
+  endif
 
 ! fixed boundary conditions at global level
     if(FIXED_BC) then
@@ -258,7 +249,8 @@
     veloc(:) = veloc(:) + deltatover2*accel(:)
 
 ! write out snapshots
-    if(mod(it-1,1000) == 0) then
+    if(mod(it,100) == 0) then
+      print *,'time step ',it,' out of ',NSTEP
       write(moviefile,"('snapshot',i5.5)") it
       open(unit=10,file=moviefile,status='unknown')
       do iglob = 1,NGLOB
@@ -273,7 +265,7 @@
 
   open(unit=12,file='seismogram',status='unknown')
   do it = 1,NSTEP
-    write(12,*) sngl(dble(it-1)*DT-hdur),sngl(seismogram(it))
+    write(12,*) sngl(dble(it-1)*deltat-hdur),sngl(seismogram(it))
   enddo
   close(12)
 
