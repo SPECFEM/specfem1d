@@ -188,6 +188,7 @@
     enddo
   endif
 
+! main time loop
   do it = 1,NSTEP
 
 ! `predictor' update displacement using explicit finite-difference time scheme (Newmark)
