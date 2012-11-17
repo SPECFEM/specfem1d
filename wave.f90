@@ -51,11 +51,14 @@
 
   include "constants.h"
 
+! run forward or backward
+  logical, parameter :: RUN_BACKWARDS = .false.
+
 ! use a plane wave source or a point source (a force)
   logical, parameter :: USE_PLANE_WAVE_SOURCE = .false.
 
 ! fixed boundary conditions
-  logical, parameter :: FIXED_BC = .true.
+  logical, parameter :: FIXED_BC = .false. !! .true.
 
   integer ispec,i,j,iglob,it
 
@@ -111,6 +114,9 @@
 ! movie
   character(len=50) moviefile
 
+! added C*v damping, off by default
+  double precision, parameter :: C = 0 !! 15000
+
 !++++++++++++++++++++++++++++++++++++++++++++++++++
 
   call define_derivative_matrix(xigll,wgll,hprime)
@@ -148,21 +154,24 @@
     enddo
   enddo
 
-! calculate the assembled global mass matrix
-  mass_global(:) = 0.
-  do ispec = 1,NSPEC
-    do i = 1,NGLL
-      mass_local = wgll(i)*rho(i,ispec)*jacobian(i,ispec)
-      iglob = ibool(i,ispec)
-      mass_global(iglob) = mass_global(iglob) + mass_local
-    enddo
-  enddo
-
 ! estimate the time step in seconds
   dh = LENGTH/dble(NGLOB-1)
   v = dsqrt(RIGIDITY/DENSITY)
   deltat = courant_CFL*dh/v
   print *,'time step estimate: ',deltat,' seconds'
+
+! simply inverting delta_t is fine even when there is C*v damping in the case of an explicit Newmark scheme
+  if(RUN_BACKWARDS) deltat = - deltat
+
+! calculate the assembled global mass matrix
+  mass_global(:) = 0.
+  do ispec = 1,NSPEC
+    do i = 1,NGLL
+      mass_local = wgll(i)*(rho(i,ispec) + C*deltat/2)*jacobian(i,ispec)
+      iglob = ibool(i,ispec)
+      mass_global(iglob) = mass_global(iglob) + mass_local
+    enddo
+  enddo
 
 ! set the source
   ispec_source = NSPEC/2
@@ -186,6 +195,15 @@
     do iglob = 1,NGLOB
       displ(iglob) = dsin(PI*x(iglob)/LENGTH)
     enddo
+  endif
+
+!! read back last time frame of forward run
+  if(RUN_BACKWARDS) then
+    open(unit=12,file='dump_last_snapshot',status='old',form='unformatted')
+    read(12) displ
+    read(12) veloc
+    read(12) accel
+    close(12)
   endif
 
 ! main time loop
@@ -233,7 +251,12 @@
 ! add source at global level
   if(.not. USE_PLANE_WAVE_SOURCE) then
     iglob_source = ibool(i_source,ispec_source)
-    stf = source_time_function(dble(it-1)*deltat-hdur,hdur)
+! the source is not at the same time step if we are running backwards
+    if(.not. RUN_BACKWARDS) then
+      stf = source_time_function(dble(it-1)*deltat-hdur,hdur)
+    else
+      stf = source_time_function(dble(NSTEP-it)*deltat-hdur,hdur)
+    endif
     accel(iglob_source) = accel(iglob_source) + stf*source_amp
   endif
 
@@ -242,6 +265,9 @@
       accel(1) = 0.
       accel(NGLOB) = 0.
     endif
+
+! add C damping
+   accel(:) = accel(:) - C*veloc(:)
 
 ! divide by the mass matrix, which is strictly (i.e. perfectly) diagonal
     accel(:) = accel(:)/mass_global(:)
@@ -252,12 +278,28 @@
 ! write out snapshots
     if(mod(it,100) == 0) then
       print *,'time step ',it,' out of ',NSTEP
-      write(moviefile,"('snapshot',i5.5)") it
+      if(RUN_BACKWARDS) then
+        write(moviefile,"('snapshot_backward',i5.5)") it
+      else
+        write(moviefile,"('snapshot_forward',i5.5)") it
+      endif
       open(unit=10,file=moviefile,status='unknown')
       do iglob = 1,NGLOB
         write(10,*) sngl(x(iglob)),sngl(displ(iglob))
       enddo
       close(10)
+    endif
+
+! to check that wavefield reconstruction is accurate when we run backwards
+    if(mod(it,100) == 1) then ! value of 1 is set purposely, because we use NSTEP-it+1
+      if(RUN_BACKWARDS) then
+        write(moviefile,"('snapshot_backward_inverted_time',i5.5)") NSTEP-it+1
+        open(unit=10,file=moviefile,status='unknown')
+        do iglob = 1,NGLOB
+          write(10,*) sngl(x(iglob)),sngl(displ(iglob))
+        enddo
+        close(10)
+      endif
     endif
 
     seismogram(it) = displ(ireceiver)
@@ -269,6 +311,15 @@
     write(12,*) sngl(dble(it-1)*deltat-hdur),sngl(seismogram(it))
   enddo
   close(12)
+
+! save last time frame of the forward run in order to be able to run backwards later if needed
+  if(.not. RUN_BACKWARDS) then
+    open(unit=12,file='dump_last_snapshot',status='unknown',form='unformatted')
+    write(12) displ
+    write(12) veloc
+    write(12) accel
+    close(12)
+  endif
 
   end program wave
 
