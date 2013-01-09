@@ -115,7 +115,14 @@
   character(len=50) moviefile
 
 ! added C*v damping, off by default
-  double precision, parameter :: C = 0 !! 15000
+  double precision, parameter :: C = 0 !!15000
+
+!! formulation of stiffness matrix
+
+  logical :: assemble_global_stiffness_matrix = .false.
+  integer :: i_interior,iglob_row,iglob_rol
+  double precision :: jocobianl, xixl, B_matrix_left, B_matrix_right, element_stiffness_matrix_block
+  double precision, dimension(NGLOB,NGLOB) :: global_stiffness_matrx
 
 !++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -206,6 +213,33 @@
     close(12)
   endif
 
+!! calculate the assembled global stiffness matrix
+  if(assemble_global_stiffness_matrix)then
+
+  global_stiffness_matrx = 0.
+ 
+  do ispec = 1,NSPEC
+      do i = 1,NGLL
+             iglob_row = ibool(i,ispec)
+        do j = 1,NGLL
+             iglob_rol = ibool(j,ispec)
+             element_stiffness_matrix_block = 0.d0
+         do i_interior = 1,NGLL
+             jocobianl = jacobian(i_interior,ispec)           
+             xixl = dxi_dx(i_interior,ispec)
+             B_matrix_left = hprime(i_interior,i) * xixl
+             B_matrix_right = hprime(i_interior,j) * xixl
+             element_stiffness_matrix_block = element_stiffness_matrix_block + &
+                                              B_matrix_left * mu(i_interior,ispec) * B_matrix_right * wgll(i_interior) * jocobianl
+         enddo 
+             global_stiffness_matrx(iglob_row,iglob_rol) = global_stiffness_matrx(iglob_row,iglob_rol) + &
+                                                                element_stiffness_matrix_block  
+        enddo      
+      enddo
+  enddo
+
+  endif
+
 ! main time loop
   do it = 1,NSTEP
 
@@ -281,7 +315,7 @@
       if(RUN_BACKWARDS) then
         write(moviefile,"('snapshot_backward',i5.5)") it
       else
-        write(moviefile,"('snapshot_forward',i5.5)") it
+        write(moviefile,"('snapshot_forward_normal',i5.5)") it
       endif
       open(unit=10,file=moviefile,status='unknown')
       do iglob = 1,NGLOB
