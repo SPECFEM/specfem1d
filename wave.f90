@@ -118,7 +118,9 @@
   double precision, parameter :: C = 0 !!15000
 
 !! formulation of stiffness matrix
-
+!! In general, when using SEM together with explicit newmark scheme(beta=0, gamma=1/2 with diagonal damping matrix C),
+!! we do not need to calculate element stiffness matrixs and then assemble them into global stiffness matrix.
+!! But in case of using SEM with implicit newmark scheme, global stiffness matrix is needed. Thus we include it.
   logical :: assemble_global_stiffness_matrix = .false.
   integer :: i_interior,iglob_row,iglob_rol
   double precision :: jocobianl, xixl, B_matrix_left, B_matrix_right, element_stiffness_matrix_block
@@ -216,9 +218,9 @@
 !! calculate the assembled global stiffness matrix
   if(assemble_global_stiffness_matrix)then
 
-  global_stiffness_matrx = 0.
+    global_stiffness_matrx = 0.
  
-  do ispec = 1,NSPEC
+    do ispec = 1,NSPEC
       do i = 1,NGLL
              iglob_row = ibool(i,ispec)
         do j = 1,NGLL
@@ -236,7 +238,7 @@
                                                                 element_stiffness_matrix_block  
         enddo      
       enddo
-  enddo
+    enddo
 
   endif
 
