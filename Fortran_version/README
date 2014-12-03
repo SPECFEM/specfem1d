@@ -1,0 +1,50 @@
+
+               S p e c f e m 1 D  V e r s i o n  1 . 0
+               ---------------------------------------
+
+See also the LICENSE file.
+
+This program compute synthetic seismograms with spectral element method in 1D medium.
+It was originally written by Jeroen Tromp and Dimitri Komatitsch,
+modified by several people and rewritten by Alexis Bottero (alexis DOT bottero at gmail DOT com),
+November 2014.
+
+Getting started :
+
+    -open Makefile and uncomment the lines corresponding to your compiler (GNU gfortran or ifort)
+    -then : "make" produces the executable in the bin directory
+    -finally : "bin/xspecfem1d" to run it
+    -"make clean" to remove the obj directory
+    -"make purge" to delete all file created
+
+There is no parameter file for this simple 1D version, the run characteristics are chosen in src/constant.h.
+The source is set in : src/source-time-function.f90
+
+Files are created in a directory named OUTPUT_FILES created in the main directory.
+
+To display the results you have the choice between two scripts :
+
+    1 - ./plot_script_using_gnuplot.py OUTPUT_FILES/snapshot_forward_normal00100 -> For example but you can display all snapshots
+        with ./plot_script_using_gnuplot.py OUTPUT_FILES/snapshot_forward_normal*
+
+    2 - ./plot_script_using_gnuplot.csh  -> Will display all snapshots
+
+Useful commands :
+
+    make ; bin/xspecfem1d -> To compile and run
+
+    make ; bin/xspecfem1d ; ./plot_script_using_gnuplot.py OUTPUT_FILES/snapshot_forward_normal* -> To compile, run and display
+
+Remarks :
+
+    -If you want to calculate synthetics for a step source you will have to comment/uncomment some lines in the subroutine
+     calculateSynthetics (modules.f90)
+
+Ideas to improve this program :
+
+    -Add interesting examples
+    -Implement irregular grids (subroutine makeGrid in modules.f90)
+    -Adapt the subroutine assembleGlobalMassMatrix for AXISYM (modules.f90)
+    -Adapt the subroutine assembleGlobalStiffnessMatrix for AXISYM (modules.f90)
+    -Replace "system()" instruction by the Fortran2008 "execute_command_line()", but for now many compilers do not support it yet.
+
