@@ -10,7 +10,7 @@
 
 #************ COMPILER OPTIONS **************#
 
-DEBUG=no                   # Debug mode or not
+DEBUG=no        # Debug mode or not
 EXEC=xspecfem1d # Executable name
 
 # Intel
@@ -77,7 +77,7 @@ $(OBJ_DIR)/source_time_function.o: $(OBJ_DIR)/modules.o $(SRC_DIR)/source_time_f
 $(OBJ_DIR)/specfem1d.o: $(OBJ_DIR)/modules.o $(SRC_DIR)/specfem1d.f90
 	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $(SRC_DIR)/specfem1d.f90 -o $(OBJ_DIR)/specfem1d.o $(FLAGS)		
 
-# .PHONY is usefull for example if it exists a file named "clean" is the current directory -> "make clean" would not work
+# .PHONY is useful for example a file named "clean" exists in the current directory -> "make clean" would not work
 .PHONY: dirobj bin
 
 # Create the directory $(OBJ_DIR) if needed :
@@ -102,7 +102,7 @@ endif
 clean:
 	rm -rf $(OBJ_DIR) $(SRC_DIR)/*~ *~ .plot_all_snapshots.gnu utils/*~ $(BIN_DIR)/*
 
-# Clean + remove executable
+# Clean and remove executable
 purge: clean
 	rm -rf $(BIN_DIR) OUTPUT_FILES
 

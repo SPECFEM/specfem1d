@@ -1,5 +1,7 @@
 #!/bin/csh
 
+rm -f _________plot_all_snapshots.gnu
+
 #echo "set term eps" >> _________plot_all_snapshots.gnu
 
 echo set xrange \[0:50000\] >> _________plot_all_snapshots.gnu
@@ -13,5 +15,5 @@ foreach file ( ./OUTPUT_FILES/snapshot* )
 end
 
 gnuplot _________plot_all_snapshots.gnu
-rm _________plot_all_snapshots.gnu
+rm -f _________plot_all_snapshots.gnu
 
