@@ -57,29 +57,25 @@ all: make_directory $(OBJ)
 make_directory: dirobj bin
 
 $(OBJ_DIR)/gaussm3.o: $(SRC_DIR)/gaussm3.f90
-	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $< -o $@ $(FLAGS)
-$(OBJ_DIR)/modules.o: $(SRC_DIR)/modules.f90
-	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $< -o $@ $(FLAGS)
-$(OBJ_DIR)/define_derivative_matrix.o: $(SRC_DIR)/define_derivative_matrix.f90
-	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $< -o $@ $(FLAGS)
-$(OBJ_DIR)/gll_library.o: $(SRC_DIR)/gll_library.f90
-	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $< -o $@ $(FLAGS)	
-$(OBJ_DIR)/lagrange_poly.o: $(SRC_DIR)/lagrange_poly.f90
-	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $< -o $@ $(FLAGS)	
-$(OBJ_DIR)/source_time_function.o: $(SRC_DIR)/source_time_function.f90
-	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $< -o $@ $(FLAGS)		
-$(OBJ_DIR)/specfem1d.o: sleep_a_bit $(SRC_DIR)/specfem1d.f90
-	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $(SRC_DIR)/specfem1d.f90 -o $@ $(FLAGS)		
+	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $(SRC_DIR)/gaussm3.f90 -o $(OBJ_DIR)/gaussm3.o $(FLAGS)
 
-# This was added to solve a Makefile/Fortran bug... Indeed the creation of modules takes time and that create errors :
-# use gaussm3
-#       1
-# Fatal Error: Can't open module file 'gaussm3.mod' for reading at (1): No such file or directory
-# Even if at the end we see gaussm3.mod in obj/
-# See : http://stackoverflow.com/questions/27268809/makefile-make-fails-but-make-d-and-make-n-hand-execution-works
+$(OBJ_DIR)/modules.o: $(OBJ_DIR)/gaussm3.o $(SRC_DIR)/modules.f90
+	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $(SRC_DIR)/modules.f90 -o $(OBJ_DIR)/modules.o $(FLAGS)
 
-sleep_a_bit:
-	@sleep 0.5 # must be >0.005
+$(OBJ_DIR)/define_derivative_matrix.o: $(OBJ_DIR)/modules.o $(SRC_DIR)/define_derivative_matrix.f90
+	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $(SRC_DIR)/define_derivative_matrix.f90 -o $(OBJ_DIR)/define_derivative_matrix.o $(FLAGS)
+
+$(OBJ_DIR)/gll_library.o: $(OBJ_DIR)/modules.o $(SRC_DIR)/gll_library.f90
+	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $(SRC_DIR)/gll_library.f90 -o $(OBJ_DIR)/gll_library.o $(FLAGS)	
+
+$(OBJ_DIR)/lagrange_poly.o: $(OBJ_DIR)/modules.o $(SRC_DIR)/lagrange_poly.f90
+	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $(SRC_DIR)/lagrange_poly.f90 -o $(OBJ_DIR)/lagrange_poly.o $(FLAGS)	
+
+$(OBJ_DIR)/source_time_function.o: $(OBJ_DIR)/modules.o $(SRC_DIR)/source_time_function.f90
+	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $(SRC_DIR)/source_time_function.f90 -o $(OBJ_DIR)/source_time_function.o $(FLAGS)		
+
+$(OBJ_DIR)/specfem1d.o: $(OBJ_DIR)/modules.o $(SRC_DIR)/specfem1d.f90
+	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $(SRC_DIR)/specfem1d.f90 -o $(OBJ_DIR)/specfem1d.o $(FLAGS)		
 
 # .PHONY is usefull for example if it exists a file named "clean" is the current directory -> "make clean" would not work
 .PHONY: dirobj bin
