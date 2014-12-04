@@ -77,7 +77,7 @@ $(OBJ_DIR)/source_time_function.o: $(OBJ_DIR)/modules.o $(SRC_DIR)/source_time_f
 $(OBJ_DIR)/specfem1d.o: $(OBJ_DIR)/modules.o $(SRC_DIR)/specfem1d.f90
 	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $(SRC_DIR)/specfem1d.f90 -o $(OBJ_DIR)/specfem1d.o $(FLAGS)		
 
-# .PHONY is useful for example a file named "clean" exists in the current directory -> "make clean" would not work
+# .PHONY is useful for example if a file called "clean" exists in the current directory -> "make clean" would not work
 .PHONY: dirobj bin
 
 # Create the directory $(OBJ_DIR) if needed :
