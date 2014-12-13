@@ -1,0 +1,11 @@
+# Build files
+obj/*.o
+
+# Executable file
+xwave
+
+# Runtime exampple files
+dump_last_snapshot
+seismogram 
+snapshot_forward_normal*
+
