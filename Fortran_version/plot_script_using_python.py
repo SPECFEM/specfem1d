@@ -11,13 +11,10 @@ an existing option (--hold, --grid)
 @author: Alexis Bottero (alexis.bottero@gmail.com)
 """
 
-### --- MODULES AND PACKAGES --- ###
 import argparse
 
 import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)
-import matplotlib as mpl         # Matplotlib (2D/3D plotting library)
 import matplotlib.pyplot as plt  # Matplotlib's pyplot: MATLAB-like syntax
-from pylab import *              # Matplotlib's pylab interface
 
 
 parser = argparse.ArgumentParser(
@@ -32,16 +29,14 @@ args = parser.parse_args()
 
 for seismo in args.files:
     data = np.loadtxt(seismo)
-    t,u = data[:,0],data[:,1]
+
     if not args.hold:
-        figure()
-    plt.plot(t,u)
-    if args.grid:
-        plt.grid(True)
-    if args.hold:
-        plt.hold(True)
-    else:
-        plt.hold(False)
+        plt.figure()
+    plt.plot(data[:,0], data[:,1])
+    plt.xlim(data[0,0], data[-1,0])
+    plt.grid(args.grid)
+    plt.hold(args.hold)
+    if not args.hold:
         plt.title(seismo.name)
-    plt.xlim([t[0],t[-1]])
-plt.show()    
+
+plt.show()
