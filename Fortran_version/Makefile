@@ -50,11 +50,8 @@ NAME := $(basename $(notdir $(SRC)))
 OBJ := $(addprefix $(OBJ_DIR)/, $(addsuffix .o, $(NAME)))
 
 # To make the executable
-all: make_directory $(OBJ)
+all: $(OBJ)
 	$(F90) -o $(BIN_DIR)/$(EXEC) $(OBJ) $(LDFLAGS)
-
-# Rule to make directory
-make_directory: dirobj bin
 
 $(OBJ_DIR)/gaussm3.o: $(SRC_DIR)/gaussm3.f90
 	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $(SRC_DIR)/gaussm3.f90 -o $(OBJ_DIR)/gaussm3.o $(FLAGS)
@@ -78,31 +75,13 @@ $(OBJ_DIR)/specfem1d.o: $(OBJ_DIR)/modules.o $(SRC_DIR)/specfem1d.f90
 	$(F90) $(MOD_OPTION)$(OBJ_DIR) -I$(OBJ_DIR) -c $(SRC_DIR)/specfem1d.f90 -o $(OBJ_DIR)/specfem1d.o $(FLAGS)		
 
 # .PHONY is useful for example if a file called "clean" exists in the current directory -> "make clean" would not work
-.PHONY: dirobj bin
-
-# Create the directory $(OBJ_DIR) if needed :
-ifeq ($(strip $( $(wildcard $(OBJ_DIR)) ) ), )
-dirobj: 
-	@mkdir -p $(OBJ_DIR)
-else
-dirobj: 
-endif
-
-# Create the directory $(BIN_DIR) if needed :
-ifeq ($(strip $( $(wildcard $(BIN_DIR)) ) ), )
-bin: 
-	@mkdir -p $(BIN_DIR)
-else
-bin: 
-endif 
-
 .PHONY: clean purge 
 
 # Clean remove all .o (if you don't want to see the messages use : @rm -rf *.o -> only the error messages will appear)
 clean:
-	rm -rf $(OBJ_DIR) $(SRC_DIR)/*~ *~ .plot_all_snapshots.gnu utils/*~ $(BIN_DIR)/*
+	rm -rf $(OBJ) $(SRC_DIR)/*~ *~ .plot_all_snapshots.gnu utils/*~ $(BIN_DIR)/$(EXEC)
 
 # Clean and remove executable
 purge: clean
-	rm -rf $(BIN_DIR) OUTPUT_FILES
+	rm -rf OUTPUT_FILES
 
