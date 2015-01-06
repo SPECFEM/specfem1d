@@ -12,37 +12,13 @@ is implemented.
 @author: Alexis Bottero (alexis.bottero@gmail.com)
 """
 
-### THIS PART CAN BE MODIFIED -> ###
-AXISYM=True
-# Grid description
-GRID_TYPE='homogeneous' # Grid's type
-LENGTH=3000 # "Physical" length of the domain (in meters)
-DENSITY=2500 #kg/m^3
-RIGIDITY=30000000000 #Pa
-GRID_FILE='grid_homogeneous.txt'
-TICKS_FILE='ticks_homogeneous.txt'
+try:
+    # Python 3
+    from configparser import SafeConfigParser
+except ImportError:
+    # Python 2
+    from ConfigParser import SafeConfigParser
 
-# Source description
-TSOURCE=100 #500.         # Duration of the source in dt
-ISOURCE=0 #501 #501 #501 #501 #501     # GLL point number on which the source is situated
-MAX_AMPL=1e7         # Maximum amplitude
-SOURCE_TYPE='ricker' # Source's type
-DECAY_RATE=2.628 #10 #2.628
-
-# Other constants
-NSPEC=250        # Number of elements
-N=4              # Degree of the basis functions
-NGLJ=N           # Degree of basis functions in the first element
-# For the moment NGLJ need to be = N
-NTS=20000        # Number of time steps
-CFL=0.45         # Courant CFL number
-
-# Plots
-DPLOT=10        # One image is displayed each DPLOT time step
-### <- THIS PART CAN BE MODIFIED ###
-
-### THIS PART IS NOT SUPPOSED TO BE MODIFIED -> ###
-# --- MODULES AND PACKAGES ---
 import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)
 import scipy as sp  # SciPy (signal and image processing library)
 import matplotlib as mpl         # Matplotlib (2D/3D plotting library)
@@ -51,6 +27,7 @@ from pylab import *              # Matplotlib's pylab interface
 
 # --- FUNCTIONS --- #
 import functions        # Contains fundamental functions
+
 
 # Gauss Lobatto Legendre points and integration weights
 ksiGLL = {
@@ -97,57 +74,110 @@ wGLJ = {
 }
 
 
-try:
-    ksiGLL = ksiGLL[N]
-    wGLL = wGLL[N]
-except KeyError:
-    print >> sys.stderr, 'ERROR: N = %d is invalid!' % (N, )
-    sys.exit()
+class FakeGlobalSectionHead(object):
+    def __init__(self, fp):
+        self.fp = fp
+        self.sechead = '[global]\n'
+    def readline(self):
+        if self.sechead:
+            try:
+                return self.sechead
+            finally:
+                self.sechead = None
+        else:
+            return self.fp.readline()
 
-try:
-    ksiGLJ = ksiGLJ[NGLJ]
-    wGLJ = wGLJ[NGLJ]
-except KeyError:
-    print >> sys.stderr, 'ERROR: NGLJ = %d is invalid!' % (NGLJ, )
-    sys.exit()
 
-
-class Parameter:
+class Parameter(object):
     """Contains all the constants and parameters necessary for 1D spectral
     element simulation"""
 
     def __init__(self):
         """Init"""
-        self.axisym=AXISYM              # True if axisymmetry
-        self.length=LENGTH              # "Physical" length of the domain (in meters)
-        self.nSpec=NSPEC                # Number of elements
-        self.N=N                        # Degree of the basis functions
-        self.NGLJ=NGLJ                  # Degree of the basis functions in the first element
-        self.nGLL=self.N+1              # Number of GLL points per elements
-        self.nGLJ=self.NGLJ+1           # Number of GLJ in the first element
-        self.nGlob=(self.nSpec-1)*self.N+self.NGLJ+1 # Number of points in the array
-        self.ibool=functions.globalArray(self.nSpec,self.nGLL)  # Global array TODO add GLJ
-        self.nts=NTS                    # Number of time steps
-        self.cfl=CFL                    # Courant CFL number
-        self.dt=0                       # Time step (will be updated)
-        #Grid description
-        self.gridType=GRID_TYPE         # Grid's type
-        self.meanRho=DENSITY
-        self.meanMu=RIGIDITY
-        # Source description :
-        self.tSource=TSOURCE            # Duration of the source in dt
-        self.iSource=ISOURCE            # GLL point number on which the source is situated
-        self.maxAmpl=MAX_AMPL           # Maximum amplitude
-        self.sourceType=SOURCE_TYPE     # Source's type
-        self.decayRate=DECAY_RATE       # Decay rate for the ricker
+        cp = SafeConfigParser(defaults={
+            # True if axial symmetry
+            'axisym': True,
+            # "Physical" length of the domain (in meters)
+            'LENGTH': 3000,
+            # Number of elements
+            'NSPEC': 250,
+            # Degree of the basis functions
+            'N': 4,
+            # Degree of basis functions in the first element
+            'NGLJ': 4,
+            # Number of time steps
+            'NTS': 2,
+            # Courant CFL number
+            'CFL': 0.45,
+            # Grid description
+            'GRID_TYPE': 'homogeneous',
+            'GRID_FILE': 'grid_homogeneous.txt',
+            'TICKS_FILE': 'ticks_homogeneous.txt',
+            # kg/m^3
+            'DENSITY': 2500,
+            # Pa
+            'RIGIDITY': 30000000000,
+            # Duration of the source in dt
+            'TSOURCE': 100,
+            # GLL point number on which the source is situated
+            'ISOURCE': 0,
+            # Maximum amplitude
+            'MAX_AMPL': 1e7,
+            # Source's type
+            'SOURCE_TYPE': 'ricker',
+            # Decay rate for the ricker
+            'DECAY_RATE': 2.628,
+            # One image is displayed each DPLOT time step
+            'DPLOT': 10,
+        })
+        with open('Par_file') as f:
+            cp.readfp(FakeGlobalSectionHead(f))
+
+        self.axisym = cp.getboolean('global', 'AXISYM')
+        self.length = cp.getfloat('global', 'LENGTH')
+        self.nSpec = cp.getint('global', 'NSPEC')
+        self.N = cp.getint('global', 'N')
+        self.NGLJ = cp.getint('global', 'NGLJ')
+        self.nts = cp.getint('global', 'NTS')
+        self.cfl = cp.getfloat('global', 'CFL')
+        self.gridType = cp.get('global', 'GRID_TYPE').strip("'\"")
+        self.gridFile = cp.get('global', 'GRID_FILE').strip("'\"")
+        self.ticksFile = cp.get('global', 'TICKS_FILE').strip("'\"")
+        self.meanRho = cp.getfloat('global', 'DENSITY')
+        self.meanMu = cp.getfloat('global', 'RIGIDITY')
+        self.tSource = cp.getfloat('global', 'TSOURCE')
+        self.iSource = cp.getint('global', 'ISOURCE')
+        self.maxAmpl = cp.getfloat('global', 'MAX_AMPL')
+        self.sourceType = cp.get('global', 'SOURCE_TYPE').strip("'\"")
+        self.decayRate = cp.getfloat('global', 'DECAY_RATE')
+        self.dplot = cp.getfloat('global', 'DPLOT')
+
+        self.nGLL = self.N + 1              # Number of GLL points per elements
+        self.nGLJ = self.NGLJ + 1           # Number of GLJ in the first element
+        self.nGlob = (self.nSpec - 1) * self.N + self.NGLJ + 1  # Number of points in the array
+        self.ibool = functions.globalArray(self.nSpec, self.nGLL)  # Global array TODO add GLJ
+        self.dt = 0                       # Time step (will be updated)
+
         # Gauss Lobatto Legendre points and integration weights :
-        self.ksiGLL=ksiGLL              # Position of the GLL points in [-1,1]
-        self.wGLL=wGLL                  # Integration weights
-        self.ksiGLJ=ksiGLJ              # Position of the GLJ points in [-1,1]
-        self.wGLJ=wGLJ                  # Integration weights
+        try:
+            # Position of the GLL points in [-1,1]
+            self.ksiGLL = ksiGLL[self.N]
+            # Integration weights
+            self.wGLL = wGLL[self.N]
+        except KeyError:
+            raise ValueError('N = %d is invalid!' % (self.N, ))
+        try:
+            # Position of the GLJ points in [-1,1]
+            self.ksiGLJ = ksiGLJ[self.NGLJ]
+            # Integration weights
+            self.wGLJ = wGLJ[self.NGLJ]
+        except KeyError:
+            raise ValueError('NGLJ = %d is invalid!' % (self.NGLJ, ))
+
         # Derivatives of the Lagrange polynomials at the GLL points
-        self.deriv=functions.lagrangeDeriv(self.ksiGLL)
-        self.derivGLJ=functions.GLJderiv(self.ksiGLJ)
+        self.deriv = functions.lagrangeDeriv(self.ksiGLL)
+        self.derivGLJ = functions.GLJderiv(self.ksiGLJ)
+
 
 class OneDgrid:
     """Contains the grid properties"""
@@ -155,8 +185,6 @@ class OneDgrid:
     def __init__(self,param):
         """Init"""
         self.param=param
-        self.gridFile=GRID_FILE
-        self.ticksFile=TICKS_FILE
         self.z=np.zeros(param.nGlob)
         self.rho=np.zeros((param.nSpec,param.nGLL))
         self.mu=np.zeros((param.nSpec,param.nGLL))
@@ -181,8 +209,8 @@ class OneDgrid:
             print "typeOfGrid == 'miscellaneous' Has not been implemented yet"
             raise
         elif param.gridType == 'file':
-            [self.z,self.rho,self.mu]=np.loadtxt(defines.GRID_FILE).transpose()
-            self.ticks=np.loadtxt(defines.TICKS_FILE)
+            self.z, self.rho, self.mu = np.loadtxt(param.gridFile, unpack=True)
+            self.ticks = np.loadtxt(param.ticksFile)
         else :
             print "Unknown grid's type"
             raise
@@ -244,6 +272,3 @@ class Source:
         plt.title('Source(t)')
         plt.grid(True)
         plt.show()
-
-### <- THIS PART IS NOT SUPPOSED TO BE MODIFIED ###
-

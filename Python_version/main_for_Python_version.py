@@ -9,7 +9,7 @@ Main script for 1D spectral elements.
          li(z): Lagrange polynomial of degree N
     ->   ui(t): Time dependent expansion coeffs (what we are looking for)
 
-   The parameters of the run can be edited in the file defines.py
+   The parameters of the run can be edited in the file Par_file
 
 @author: Alexis Bottero, CNRS Marseille, France (alexis.bottero@gmail.com)
 """
@@ -72,7 +72,7 @@ for it in np.arange(param.nts):
     acc[:] /= M[:]
     vel[:] += param.dt/2*acc[:]
 
-    if it%defines.DPLOT == 0:
+    if it % param.dplot == 0:
         if param.axisym:
             b=np.array([i for i in reversed(u)])
             c=append(b,u)
