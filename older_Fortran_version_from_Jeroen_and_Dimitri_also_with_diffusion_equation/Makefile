@@ -1,4 +1,3 @@
-
 #=====================================================================
 #
 #               S p e c f e m 1 D  V e r s i o n  1 . 0
@@ -27,64 +26,31 @@
 O = obj
 
 # Portland
-#F90 = pgf90
-#FLAGS =-fast -Mnobounds -Minline -Mneginfo -Mdclchk -Knoieee -Minform=warn -fastsse -tp amd64e -Msmart
+#FC = pgf90
+#FCFLAGS =-fast -Mnobounds -Minline -Mneginfo -Mdclchk -Knoieee -Minform=warn -fastsse -tp amd64e -Msmart
 
 # Intel
-#F90 = ifort
-#FLAGS = -O1 -vec-report0 -std95 -implicitnone -warn truncated_source -warn argument_checking -warn unused -warn declarations -warn alignments -warn ignore_loc -warn usage -check all -align sequence -assume byterecl -ftz -traceback -ftrapuv
+#FC = ifort
+#FCFLAGS = -O1 -vec-report0 -std95 -implicitnone -warn truncated_source -warn argument_checking -warn unused -warn declarations -warn alignments -warn ignore_loc -warn usage -check all -align sequence -assume byterecl -ftz -traceback -ftrapuv
 
 # GNU gfortran
-F90 = gfortran
-FLAGS = -std=gnu -fimplicit-none -frange-check -O2 -fmax-errors=10 -pedantic -pedantic-errors -Waliasing -Wampersand -Wcharacter-truncation -Wline-truncation -Wsurprising -Wno-tabs -Wunderflow -fbounds-check
+FC = gfortran
+FCFLAGS = -std=gnu -fimplicit-none -frange-check -O2 -fmax-errors=10 -pedantic -pedantic-errors -Waliasing -Wampersand -Wcharacter-truncation -Wline-truncation -Wsurprising -Wno-tabs -Wunderflow -fbounds-check
 
-wave: constants.h \
-       $O/wave.o \
-       $O/gll_library.o \
-       $O/lagrange_poly.o \
-       $O/source_time_function.o \
-       $O/define_derivative_matrix.o
-	${F90} $(FLAGS) -o xwave \
-       $O/wave.o \
-       $O/gll_library.o \
-       $O/lagrange_poly.o \
-       $O/source_time_function.o \
-       $O/define_derivative_matrix.o
+all: xwave xdiffusion
 
-diffusion: constants.h \
-       $O/diffusion.o \
-       $O/gll_library.o \
-       $O/lagrange_poly.o \
-       $O/define_derivative_matrix.o
-	${F90} $(FLAGS) -o xdiffusion \
-       $O/diffusion.o \
-       $O/gll_library.o \
-       $O/lagrange_poly.o \
-       $O/define_derivative_matrix.o
+xwave: $O/wave.o $O/gll_library.o $O/lagrange_poly.o $O/source_time_function.o $O/define_derivative_matrix.o
+	${FC} $(FCFLAGS) -o $@ $+
 
-bak:
-	cp *f90 *h Makefile bak
+xdiffusion: $O/diffusion.o $O/gll_library.o $O/lagrange_poly.o $O/define_derivative_matrix.o
+	${FC} $(FCFLAGS) -o $@ $+
 
+$O/%.o: %.f90 constants.h
+	${FC} $(FCFLAGS) -c -o $@ $<
+
+.PHONY: clean purge
 clean:
-	rm -f $O/*.o *.o snapshot* seismogram xwave xdiffusion
+	rm -f $O/*.o xwave xdiffusion
 
-all: clean wave diffusion
-
-$O/wave.o: constants.h wave.f90
-	${F90} $(FLAGS) -c -o $O/wave.o wave.f90
-
-$O/diffusion.o: constants.h diffusion.f90
-	${F90} $(FLAGS) -c -o $O/diffusion.o diffusion.f90
-
-$O/define_derivative_matrix.o: constants.h define_derivative_matrix.f90
-	${F90} $(FLAGS) -c -o $O/define_derivative_matrix.o define_derivative_matrix.f90
-
-$O/gll_library.o: gll_library.f90
-	${F90} $(FLAGS) -c -o $O/gll_library.o gll_library.f90
-
-$O/lagrange_poly.o: lagrange_poly.f90
-	${F90} $(FLAGS) -c -o $O/lagrange_poly.o lagrange_poly.f90
-
-$O/source_time_function.o: source_time_function.f90
-	${F90} $(FLAGS) -c -o $O/source_time_function.o source_time_function.f90
-
+purge: clean
+	rm -f snapshot* seismogram

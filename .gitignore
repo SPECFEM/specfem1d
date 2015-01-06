@@ -2,6 +2,7 @@
 obj/*.o
 
 # Executable file
+xdiffusion
 xwave
 
 # Runtime exampple files

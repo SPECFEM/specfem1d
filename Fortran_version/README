@@ -14,7 +14,7 @@ Getting started :
     -open Makefile and uncomment the lines corresponding to your compiler (GNU gfortran or ifort)
     -then : "make" produces the executable in the bin directory
     -finally : type "./bin/xspecfem1d" to run it
-    -"make clean" to remove the obj/ directory
+    -"make clean" to remove the build results
     -"make purge" to delete all files created
 
 There is no parameter file for this simple 1D version, the run characteristics are chosen in src/constant.h.
