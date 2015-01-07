@@ -5,8 +5,10 @@ obj/*.o
 xdiffusion
 xwave
 
-# Runtime exampple files
+# Runtime example files
 dump_last_snapshot
 seismogram 
 snapshot_forward_normal*
 
+# Python compiled files
+*.pyc

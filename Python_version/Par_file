@@ -1,0 +1,57 @@
+AXISYM = True
+
+####################
+# Grid description #
+####################
+
+# Grid's type
+GRID_TYPE = 'homogeneous'
+# "Physical" length of the domain (in meters)
+LENGTH = 3000
+# kg/m^3
+DENSITY = 2500
+# Pa
+RIGIDITY = 30000000000
+GRID_FILE = 'grid_homogeneous.txt'
+TICKS_FILE = 'ticks_homogeneous.txt'
+
+
+######################
+# Source description #
+######################
+
+# Duration of the source in dt
+TSOURCE = 100
+# GLL point number on which the source is situated
+ISOURCE = 0
+# Maximum amplitude
+MAX_AMPL = 1e7
+# Source's type
+SOURCE_TYPE = 'ricker'
+
+DECAY_RATE = 2.628
+
+
+###################
+# Other constants #
+###################
+
+# Number of elements
+NSPEC = 250
+# Degree of the basis functions
+N = 4
+# Degree of basis functions in the first element
+# For the moment NGLJ need to be = N
+NGLJ = %(N)s
+# Number of time steps
+NTS = 20000
+# Courant CFL number
+CFL = 0.45
+
+#########
+# Plots #
+#########
+# Enable plotting
+PLOT = True
+# One image is displayed each DPLOT time step
+DPLOT = 10

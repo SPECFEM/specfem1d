@@ -12,37 +12,13 @@ is implemented.
 @author: Alexis Bottero (alexis.bottero@gmail.com)
 """
 
-### THIS PART CAN BE MODIFIED -> ###
-AXISYM=True
-# Grid description
-GRID_TYPE='homogeneous' # Grid's type
-LENGTH=3000 # "Physical" length of the domain (in meters)
-DENSITY=2500 #kg/m^3
-RIGIDITY=30000000000 #Pa
-GRID_FILE='grid_homogeneous.txt'
-TICKS_FILE='ticks_homogeneous.txt'
+try:
+    # Python 3
+    from configparser import SafeConfigParser
+except ImportError:
+    # Python 2
+    from ConfigParser import SafeConfigParser
 
-# Source description
-TSOURCE=100 #500.         # Duration of the source in dt
-ISOURCE=0 #501 #501 #501 #501 #501     # GLL point number on which the source is situated
-MAX_AMPL=1e7         # Maximum amplitude
-SOURCE_TYPE='ricker' # Source's type
-DECAY_RATE=2.628 #10 #2.628
-
-# Other constants
-NSPEC=250        # Number of elements
-N=4              # Degree of the basis functions
-NGLJ=N           # Degree of basis functions in the first element
-# For the moment NGLJ need to be = N
-NTS=20000        # Number of time steps
-CFL=0.45         # Courant CFL number
-
-# Plots
-DPLOT=10        # One image is displayed each DPLOT time step
-### <- THIS PART CAN BE MODIFIED ###
-
-### THIS PART IS NOT SUPPOSED TO BE MODIFIED -> ###
-# --- MODULES AND PACKAGES ---
 import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)
 import scipy as sp  # SciPy (signal and image processing library)
 import matplotlib as mpl         # Matplotlib (2D/3D plotting library)
@@ -52,89 +28,159 @@ from pylab import *              # Matplotlib's pylab interface
 # --- FUNCTIONS --- #
 import functions        # Contains fundamental functions
 
-# Gauss Lobatto Legendre points and integration weights
-ksiGLL4=np.array([-1,-0.6546536707,0,0.6546536707,1])
-wGLL4=np.array([0.1,0.5444444444,0.7111111111,0.5444444444,0.1])
-ksiGLL5=np.array([-1,-0.7650553239,-0.2852315164,0.2852315164,0.7650553239,1])
-wGLL5=np.array([0.0666666666,0.3784749562,0.5548583770,0.5548583770,0.3784749562,0.0666666666])
-ksiGLL6=np.array([-1,-0.8302238962,-0.4688487934,0,0.4688487934,0.8302238962,1])
-wGLL6=np.array([0.0476190476,0.2768260473,0.4317453812,0.4876190476,0.4317453812,0.2768260473,0.0476190476])
-ksiGLL7=np.array([-1,-0.8717401485,-0.5917001814,-0.2092992179,0.2092992179,0.5917001814,0.8717401485,1])
-wGLL7=np.array([0.0357142857,0.2107042271,0.3411226924,0.4124587946,0.4124587946,0.3411226924,0.2107042271,0.0357142857])
 
-if N == 4:
-    ksiGLL=ksiGLL4
-    wGLL=wGLL4
-elif N == 5:
-    ksiGLL=ksiGLL5
-    wGLL=wGLL5
-elif N == 6:
-    ksiGLL=ksiGLL6
-    wGLL=wGLL6
-else:
-    ksiGLL=ksiGLL7
-    wGLL=wGLL7
+# Gauss Lobatto Legendre points and integration weights
+ksiGLL = {
+    4: np.array([-1, -0.6546536707, 0, 0.6546536707, 1]),
+    5: np.array([-1, -0.7650553239, -0.2852315164, 0.2852315164, 0.7650553239,
+                 1]),
+    6: np.array([-1, -0.8302238962, -0.4688487934, 0, 0.4688487934,
+                 0.8302238962, 1]),
+    7: np.array([-1, -0.8717401485, -0.5917001814, -0.2092992179, 0.2092992179,
+                 0.5917001814, 0.8717401485, 1]),
+}
+
+wGLL = {
+    4: np.array([0.1, 0.5444444444, 0.7111111111, 0.5444444444, 0.1]),
+    5: np.array([0.0666666666, 0.3784749562, 0.5548583770, 0.5548583770,
+                 0.3784749562, 0.0666666666]),
+    6: np.array([0.0476190476, 0.2768260473, 0.4317453812, 0.4876190476,
+                 0.4317453812, 0.2768260473, 0.0476190476]),
+    7: np.array([0.0357142857, 0.2107042271, 0.3411226924, 0.4124587946,
+                 0.4124587946, 0.3411226924, 0.2107042271, 0.0357142857]),
+}
 
 # Gauss Lobatto Jacobi points and integration weights
 
-ksiGLJ4=np.array([-1.0,-0.5077876295,0.1323008207,0.7088201421,1.0])
-wGLJ4=np.array([0.01333333333,0.2896566946,0.7360043695,0.794338936,0.1666666667])
-ksiGLJ5=np.array([-1.0,-0.6507788566,-0.1563704318,0.3734893787,0.7972962733,1.0])
-wGLJ5=np.array([0.006349206349,0.1503293754,0.452292685,0.6858215721,0.5909214468,0.1142857143])
-ksiGLJ6=np.array([-1.0,-0.7401236486,-0.3538526341,0.09890279315,0.5288423045,0.8508465697,1.0])
-wGLJ6=np.array([0.003401360544,0.08473655296,0.2803032119,0.5016469619,0.5945754451,0.4520031342,0.08333333333])
-ksiGLJ7=np.array([-1.0,-0.7993818545,-0.4919057913,-0.1117339354,0.2835397724,0.6337933270,0.8856884817,1.0])
-wGLJ7=np.array([0.001984126984,0.0510689152,0.1792187805,0.3533996177,0.4909749105,0.5047839706,0.3550776151,0.06349206349])
+ksiGLJ = {
+    4: np.array([-1.0, -0.5077876295, 0.1323008207, 0.7088201421, 1.0]),
+    5: np.array([-1.0, -0.6507788566, -0.1563704318, 0.3734893787,
+                 0.7972962733, 1.0]),
+    6: np.array([-1.0, -0.7401236486, -0.3538526341, 0.09890279315,
+                 0.5288423045, 0.8508465697, 1.0]),
+    7: np.array([-1.0, -0.7993818545, -0.4919057913, -0.1117339354,
+                 0.2835397724, 0.6337933270, 0.8856884817, 1.0]),
+}
 
-if NGLJ == 4:
-    ksiGLJ=ksiGLJ4
-    wGLJ=wGLJ4
-elif NGLJ == 5:
-    ksiGLJ=ksiGLJ5
-    wGLJ=wGLJ5
-elif NGLJ == 6:
-    ksiGLJ=ksiGLJ6
-    wGLJ=wGLJ6
-else:
-    ksiGLJ=ksiGLJ7
-    wGLJ=wGLJ7
+wGLJ = {
+    4: np.array([0.01333333333, 0.2896566946, 0.7360043695, 0.794338936,
+                 0.1666666667]),
+    5: np.array([0.006349206349, 0.1503293754, 0.452292685, 0.6858215721,
+                 0.5909214468, 0.1142857143]),
+    6: np.array([0.003401360544, 0.08473655296, 0.2803032119, 0.5016469619,
+                 0.5945754451, 0.4520031342, 0.08333333333]),
+    7: np.array([0.001984126984, 0.0510689152, 0.1792187805, 0.3533996177,
+                 0.4909749105, 0.5047839706, 0.3550776151, 0.06349206349]),
+}
 
-class Parameter:
+
+class FakeGlobalSectionHead(object):
+    def __init__(self, fp):
+        self.fp = fp
+        self.sechead = '[global]\n'
+    def readline(self):
+        if self.sechead:
+            try:
+                return self.sechead
+            finally:
+                self.sechead = None
+        else:
+            return self.fp.readline()
+
+
+class Parameter(object):
     """Contains all the constants and parameters necessary for 1D spectral
     element simulation"""
 
     def __init__(self):
         """Init"""
-        self.axisym=AXISYM              # True if axisymmetry
-        self.length=LENGTH              # "Physical" length of the domain (in meters)
-        self.nSpec=NSPEC                # Number of elements
-        self.N=N                        # Degree of the basis functions
-        self.NGLJ=NGLJ                  # Degree of the basis functions in the first element
-        self.nGLL=self.N+1              # Number of GLL points per elements
-        self.nGLJ=self.NGLJ+1           # Number of GLJ in the first element
-        self.nGlob=(self.nSpec-1)*self.N+self.NGLJ+1 # Number of points in the array
-        self.ibool=functions.globalArray(self.nSpec,self.nGLL)  # Global array TODO add GLJ
-        self.nts=NTS                    # Number of time steps
-        self.cfl=CFL                    # Courant CFL number
-        self.dt=0                       # Time step (will be updated)
-        #Grid description
-        self.gridType=GRID_TYPE         # Grid's type
-        self.meanRho=DENSITY
-        self.meanMu=RIGIDITY
-        # Source description :
-        self.tSource=TSOURCE            # Duration of the source in dt
-        self.iSource=ISOURCE            # GLL point number on which the source is situated
-        self.maxAmpl=MAX_AMPL           # Maximum amplitude
-        self.sourceType=SOURCE_TYPE     # Source's type
-        self.decayRate=DECAY_RATE       # Decay rate for the ricker
+        cp = SafeConfigParser(defaults={
+            # True if axial symmetry
+            'axisym': True,
+            # "Physical" length of the domain (in meters)
+            'LENGTH': 3000,
+            # Number of elements
+            'NSPEC': 250,
+            # Degree of the basis functions
+            'N': 4,
+            # Degree of basis functions in the first element
+            'NGLJ': 4,
+            # Number of time steps
+            'NTS': 2,
+            # Courant CFL number
+            'CFL': 0.45,
+            # Grid description
+            'GRID_TYPE': 'homogeneous',
+            'GRID_FILE': 'grid_homogeneous.txt',
+            'TICKS_FILE': 'ticks_homogeneous.txt',
+            # kg/m^3
+            'DENSITY': 2500,
+            # Pa
+            'RIGIDITY': 30000000000,
+            # Duration of the source in dt
+            'TSOURCE': 100,
+            # GLL point number on which the source is situated
+            'ISOURCE': 0,
+            # Maximum amplitude
+            'MAX_AMPL': 1e7,
+            # Source's type
+            'SOURCE_TYPE': 'ricker',
+            # Decay rate for the ricker
+            'DECAY_RATE': 2.628,
+            # Plot grid, source, and periodic results
+            'PLOT': False,
+            # One image is displayed each DPLOT time step
+            'DPLOT': 10,
+        })
+        with open('Par_file') as f:
+            cp.readfp(FakeGlobalSectionHead(f))
+
+        self.axisym = cp.getboolean('global', 'AXISYM')
+        self.length = cp.getfloat('global', 'LENGTH')
+        self.nSpec = cp.getint('global', 'NSPEC')
+        self.N = cp.getint('global', 'N')
+        self.NGLJ = cp.getint('global', 'NGLJ')
+        self.nts = cp.getint('global', 'NTS')
+        self.cfl = cp.getfloat('global', 'CFL')
+        self.gridType = cp.get('global', 'GRID_TYPE').strip("'\"")
+        self.gridFile = cp.get('global', 'GRID_FILE').strip("'\"")
+        self.ticksFile = cp.get('global', 'TICKS_FILE').strip("'\"")
+        self.meanRho = cp.getfloat('global', 'DENSITY')
+        self.meanMu = cp.getfloat('global', 'RIGIDITY')
+        self.tSource = cp.getfloat('global', 'TSOURCE')
+        self.iSource = cp.getint('global', 'ISOURCE')
+        self.maxAmpl = cp.getfloat('global', 'MAX_AMPL')
+        self.sourceType = cp.get('global', 'SOURCE_TYPE').strip("'\"")
+        self.decayRate = cp.getfloat('global', 'DECAY_RATE')
+        self.plot = cp.getboolean('global', 'PLOT')
+        self.dplot = cp.getfloat('global', 'DPLOT')
+
+        self.nGLL = self.N + 1              # Number of GLL points per elements
+        self.nGLJ = self.NGLJ + 1           # Number of GLJ in the first element
+        self.nGlob = (self.nSpec - 1) * self.N + self.NGLJ + 1  # Number of points in the array
+        self.ibool = functions.globalArray(self.nSpec, self.nGLL)  # Global array TODO add GLJ
+        self.dt = 0                       # Time step (will be updated)
+
         # Gauss Lobatto Legendre points and integration weights :
-        self.ksiGLL=ksiGLL              # Position of the GLL points in [-1,1]
-        self.wGLL=wGLL                  # Integration weights
-        self.ksiGLJ=ksiGLJ              # Position of the GLJ points in [-1,1]
-        self.wGLJ=wGLJ                  # Integration weights
+        try:
+            # Position of the GLL points in [-1,1]
+            self.ksiGLL = ksiGLL[self.N]
+            # Integration weights
+            self.wGLL = wGLL[self.N]
+        except KeyError:
+            raise ValueError('N = %d is invalid!' % (self.N, ))
+        try:
+            # Position of the GLJ points in [-1,1]
+            self.ksiGLJ = ksiGLJ[self.NGLJ]
+            # Integration weights
+            self.wGLJ = wGLJ[self.NGLJ]
+        except KeyError:
+            raise ValueError('NGLJ = %d is invalid!' % (self.NGLJ, ))
+
         # Derivatives of the Lagrange polynomials at the GLL points
-        self.deriv=functions.lagrangeDeriv(self.ksiGLL)
-        self.derivGLJ=functions.GLJderiv(self.ksiGLJ)
+        self.deriv = functions.lagrangeDeriv(self.ksiGLL)
+        self.derivGLJ = functions.GLJderiv(self.ksiGLJ)
+
 
 class OneDgrid:
     """Contains the grid properties"""
@@ -142,8 +188,6 @@ class OneDgrid:
     def __init__(self,param):
         """Init"""
         self.param=param
-        self.gridFile=GRID_FILE
-        self.ticksFile=TICKS_FILE
         self.z=np.zeros(param.nGlob)
         self.rho=np.zeros((param.nSpec,param.nGLL))
         self.mu=np.zeros((param.nSpec,param.nGLL))
@@ -168,8 +212,8 @@ class OneDgrid:
             print "typeOfGrid == 'miscellaneous' Has not been implemented yet"
             raise
         elif param.gridType == 'file':
-            [self.z,self.rho,self.mu]=np.loadtxt(defines.GRID_FILE).transpose()
-            self.ticks=np.loadtxt(defines.TICKS_FILE)
+            self.z, self.rho, self.mu = np.loadtxt(param.gridFile, unpack=True)
+            self.ticks = np.loadtxt(param.ticksFile)
         else :
             print "Unknown grid's type"
             raise
@@ -231,6 +275,3 @@ class Source:
         plt.title('Source(t)')
         plt.grid(True)
         plt.show()
-
-### <- THIS PART IS NOT SUPPOSED TO BE MODIFIED ###
-

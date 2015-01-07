@@ -49,7 +49,7 @@ def invProjection(ksi, elt_number, ticks):
 def lagrangeDeriv(ksiGLL):
     """Calculates the values of the derivative of the Lagrange polynomials
     at the GLL points"""
-    N=defines.N
+    N = len(ksiGLL) - 1
     deriv=np.zeros((N+1,N+1),dtype='d')
     for i in range(N+1):
         for j in range(N+1):
