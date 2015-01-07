@@ -18,16 +18,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from defines import Parameter
-from defines import OneDgrid
 from defines import Source
 import functions        # Contains fundamental functions
+from grid import OneDimensionalGrid
 
 ### --- MAIN BODY --- ###
 # Initialization
 param=Parameter()    # Initialize all the parameters of the run. Store them
-grid=OneDgrid(param) # Initialize the grid from these parameters
+grid = OneDimensionalGrid(param)
 if param.plot:
-    grid.plotGrid()
+    grid.plot()
 
 param.dt=functions.estimateDt(grid,param) # estimate the time step in seconds
 source=Source(param) # Initialize the source
