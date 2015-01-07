@@ -22,52 +22,8 @@ except ImportError:
 import numpy as np
 import matplotlib.pyplot as plt
 
+import gll
 import functions
-
-
-# Gauss Lobatto Legendre points and integration weights
-ksiGLL = {
-    4: np.array([-1, -0.6546536707, 0, 0.6546536707, 1]),
-    5: np.array([-1, -0.7650553239, -0.2852315164, 0.2852315164, 0.7650553239,
-                 1]),
-    6: np.array([-1, -0.8302238962, -0.4688487934, 0, 0.4688487934,
-                 0.8302238962, 1]),
-    7: np.array([-1, -0.8717401485, -0.5917001814, -0.2092992179, 0.2092992179,
-                 0.5917001814, 0.8717401485, 1]),
-}
-
-wGLL = {
-    4: np.array([0.1, 0.5444444444, 0.7111111111, 0.5444444444, 0.1]),
-    5: np.array([0.0666666666, 0.3784749562, 0.5548583770, 0.5548583770,
-                 0.3784749562, 0.0666666666]),
-    6: np.array([0.0476190476, 0.2768260473, 0.4317453812, 0.4876190476,
-                 0.4317453812, 0.2768260473, 0.0476190476]),
-    7: np.array([0.0357142857, 0.2107042271, 0.3411226924, 0.4124587946,
-                 0.4124587946, 0.3411226924, 0.2107042271, 0.0357142857]),
-}
-
-# Gauss Lobatto Jacobi points and integration weights
-
-ksiGLJ = {
-    4: np.array([-1.0, -0.5077876295, 0.1323008207, 0.7088201421, 1.0]),
-    5: np.array([-1.0, -0.6507788566, -0.1563704318, 0.3734893787,
-                 0.7972962733, 1.0]),
-    6: np.array([-1.0, -0.7401236486, -0.3538526341, 0.09890279315,
-                 0.5288423045, 0.8508465697, 1.0]),
-    7: np.array([-1.0, -0.7993818545, -0.4919057913, -0.1117339354,
-                 0.2835397724, 0.6337933270, 0.8856884817, 1.0]),
-}
-
-wGLJ = {
-    4: np.array([0.01333333333, 0.2896566946, 0.7360043695, 0.794338936,
-                 0.1666666667]),
-    5: np.array([0.006349206349, 0.1503293754, 0.452292685, 0.6858215721,
-                 0.5909214468, 0.1142857143]),
-    6: np.array([0.003401360544, 0.08473655296, 0.2803032119, 0.5016469619,
-                 0.5945754451, 0.4520031342, 0.08333333333]),
-    7: np.array([0.001984126984, 0.0510689152, 0.1792187805, 0.3533996177,
-                 0.4909749105, 0.5047839706, 0.3550776151, 0.06349206349]),
-}
 
 
 class FakeGlobalSectionHead(object):
@@ -160,22 +116,22 @@ class Parameter(object):
         # Gauss Lobatto Legendre points and integration weights :
         try:
             # Position of the GLL points in [-1,1]
-            self.ksiGLL = ksiGLL[self.N]
+            self.ksiGLL = gll.GLL_POINTS[self.N]
             # Integration weights
-            self.wGLL = wGLL[self.N]
+            self.wGLL = gll.GLL_WEIGHTS[self.N]
         except KeyError:
             raise ValueError('N = %d is invalid!' % (self.N, ))
         try:
             # Position of the GLJ points in [-1,1]
-            self.ksiGLJ = ksiGLJ[self.NGLJ]
+            self.ksiGLJ = gll.GLJ_POINTS[self.NGLJ]
             # Integration weights
-            self.wGLJ = wGLJ[self.NGLJ]
+            self.wGLJ = gll.GLJ_WEIGHTS[self.NGLJ]
         except KeyError:
             raise ValueError('NGLJ = %d is invalid!' % (self.NGLJ, ))
 
         # Derivatives of the Lagrange polynomials at the GLL points
-        self.deriv = functions.lagrangeDeriv(self.ksiGLL)
-        self.derivGLJ = functions.GLJderiv(self.ksiGLJ)
+        self.deriv = gll.lagrange_derivative(self.ksiGLL)
+        self.derivGLJ = gll.glj_derivative(self.ksiGLJ)
 
 
 class OneDgrid:
@@ -215,8 +171,8 @@ class OneDgrid:
             raise
         # Jacobians at the GLL (and GLJ for the first element in axisym)
         # points (arrays nSpec*(N+1) elements)
-        self.dXdKsi=functions.jacob(self.ticks,param)
-        self.dKsiDx=functions.jacobInv(self.ticks,param)
+        self.dXdKsi = gll.jacobian(self.ticks, param)
+        self.dKsiDx = gll.jacobian_inverse(self.ticks, param)
 
     def plotGrid(self,fig=0):
         """Plot the grid
