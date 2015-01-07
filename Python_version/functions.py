@@ -11,16 +11,6 @@ elements simulations.
 import numpy as np
 
 
-def globalArray(nSpec,nGLL):
-    """Returns a matrix A. A[element_number,GLL_considered] -> index in the
-    global array, if we work in axisym and that the element number is 0 the points
-    are GLJ points"""
-    ibool = np.zeros((nSpec,nGLL),dtype='d')
-    for e in np.arange(nSpec):
-        for i in np.arange(nGLL):
-            ibool[e,i] = (nGLL-1)*e+i
-    return ibool
-
 def estimateDt(grid,param):
     dzMin=(grid.z[1:]-grid.z[:len(grid.z)-1]).min()
     dh=param.length/(len(grid.z)-1)

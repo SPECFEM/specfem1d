@@ -110,7 +110,7 @@ class Parameter(object):
         self.nGLL = self.N + 1              # Number of GLL points per elements
         self.nGLJ = self.NGLJ + 1           # Number of GLJ in the first element
         self.nGlob = (self.nSpec - 1) * self.N + self.NGLJ + 1  # Number of points in the array
-        self.ibool = functions.globalArray(self.nSpec, self.nGLL)  # Global array TODO add GLJ
+        self.ibool = self.make_global_index()  # TODO: add GLJ
         self.dt = 0                       # Time step (will be updated)
 
         # Gauss Lobatto Legendre points and integration weights :
@@ -132,6 +132,16 @@ class Parameter(object):
         # Derivatives of the Lagrange polynomials at the GLL points
         self.deriv = gll.lagrange_derivative(self.ksiGLL)
         self.derivGLJ = gll.glj_derivative(self.ksiGLJ)
+
+    def make_global_index(self):
+        """Returns a matrix A. A[element_number,GLL_considered] -> index in the
+        global array, if we work in axisym and that the element number is 0 the points
+        are GLJ points"""
+        ibool = np.zeros((self.nSpec, self.nGLL), dtype='d')
+        for e in np.arange(self.nSpec):
+            for i in np.arange(self.nGLL):
+                ibool[e,i] = (self.nGLL - 1) * e + i
+        return ibool
 
 
 class Source(object):
