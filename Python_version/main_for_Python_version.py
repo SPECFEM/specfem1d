@@ -32,11 +32,13 @@ import functions        # Contains fundamental functions
 # Initialization
 param=Parameter()    # Initialize all the parameters of the run. Store them
 grid=OneDgrid(param) # Initialize the grid from these parameters
-#grid.plotGrid()      # Plot the grid
+if param.plot:
+    grid.plotGrid()
 
 param.dt=functions.estimateDt(grid,param) # estimate the time step in seconds
 source=Source(param) # Initialize the source
-#source.plotSource()  # Plot the source
+if param.plot:
+    source.plotSource()
 
 # Computation of stiffness matrices
 Ke=functions.makeStiffness(grid,param)
@@ -48,11 +50,12 @@ M=functions.makeMass(grid,param)
 u=np.zeros(param.nGlob,dtype='d')
 vel,acc=np.zeros_like(u),np.zeros_like(u)
 
-plt.ion()
-fig=plt.figure()
-plt.hold(False)
-bz=-np.array([i for i in reversed(grid.z)])
-cz=append(bz,grid.z)
+if param.plot:
+    plt.ion()
+    fig = plt.figure()
+    plt.hold(False)
+    bz = -np.array([i for i in reversed(grid.z)])
+    cz = append(bz, grid.z)
 
 # Main time loop :
 for it in np.arange(param.nts):
@@ -72,7 +75,7 @@ for it in np.arange(param.nts):
     acc[:] /= M[:]
     vel[:] += param.dt/2*acc[:]
 
-    if it % param.dplot == 0:
+    if param.plot and it % param.dplot == 0:
         if param.axisym:
             b=np.array([i for i in reversed(u)])
             c=append(b,u)

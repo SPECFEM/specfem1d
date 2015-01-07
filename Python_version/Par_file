@@ -51,5 +51,7 @@ CFL = 0.45
 #########
 # Plots #
 #########
+# Enable plotting
+PLOT = True
 # One image is displayed each DPLOT time step
 DPLOT = 10

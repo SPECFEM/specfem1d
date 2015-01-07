@@ -127,6 +127,8 @@ class Parameter(object):
             'SOURCE_TYPE': 'ricker',
             # Decay rate for the ricker
             'DECAY_RATE': 2.628,
+            # Plot grid, source, and periodic results
+            'PLOT': False,
             # One image is displayed each DPLOT time step
             'DPLOT': 10,
         })
@@ -150,6 +152,7 @@ class Parameter(object):
         self.maxAmpl = cp.getfloat('global', 'MAX_AMPL')
         self.sourceType = cp.get('global', 'SOURCE_TYPE').strip("'\"")
         self.decayRate = cp.getfloat('global', 'DECAY_RATE')
+        self.plot = cp.getboolean('global', 'PLOT')
         self.dplot = cp.getfloat('global', 'DPLOT')
 
         self.nGLL = self.N + 1              # Number of GLL points per elements
