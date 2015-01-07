@@ -14,15 +14,9 @@ Main script for 1D spectral elements.
 @author: Alexis Bottero, CNRS Marseille, France (alexis.bottero@gmail.com)
 """
 
-### --- MODULES AND PACKAGES --- ###
-import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)
-import scipy as sp  # SciPy (signal and image processing library)
-import matplotlib as mpl         # Matplotlib (2D/3D plotting library)
-import matplotlib.pyplot as plt  # Matplotlib's pyplot: MATLAB-like syntax
-from pylab import *              # Matplotlib's pylab interface
+import numpy as np
+import matplotlib.pyplot as plt
 
-### --- FUNCTIONS --- ###
-import defines          # Contains all the constants and parameters
 from defines import Parameter
 from defines import OneDgrid
 from defines import Source
@@ -55,7 +49,7 @@ if param.plot:
     fig = plt.figure()
     plt.hold(False)
     bz = -np.array([i for i in reversed(grid.z)])
-    cz = append(bz, grid.z)
+    cz = np.append(bz, grid.z)
 
 # Main time loop :
 for it in np.arange(param.nts):
@@ -78,7 +72,7 @@ for it in np.arange(param.nts):
     if param.plot and it % param.dplot == 0:
         if param.axisym:
             b=np.array([i for i in reversed(u)])
-            c=append(b,u)
+            c = np.append(b, u)
             plt.plot(cz,c)
             plt.xlim([-max(grid.z),max(grid.z)])
             plt.ylim([-10,10]) #plt.ylim([0,0.01])

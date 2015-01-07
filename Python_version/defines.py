@@ -19,14 +19,10 @@ except ImportError:
     # Python 2
     from ConfigParser import SafeConfigParser
 
-import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)
-import scipy as sp  # SciPy (signal and image processing library)
-import matplotlib as mpl         # Matplotlib (2D/3D plotting library)
-import matplotlib.pyplot as plt  # Matplotlib's pyplot: MATLAB-like syntax
-from pylab import *              # Matplotlib's pylab interface
+import numpy as np
+import matplotlib.pyplot as plt
 
-# --- FUNCTIONS --- #
-import functions        # Contains fundamental functions
+import functions
 
 
 # Gauss Lobatto Legendre points and integration weights
@@ -193,8 +189,8 @@ class OneDgrid:
         self.mu=np.zeros((param.nSpec,param.nGLL))
         self.ticks=np.zeros(param.nSpec+1)
         if param.gridType == 'homogeneous':
-            self.ticks=linspace(0,param.length,param.nSpec+1)
-            for e in arange(param.nSpec):
+            self.ticks = np.linspace(0, param.length, param.nSpec + 1)
+            for e in np.arange(param.nSpec):
                 for i in np.arange(param.nGLL):
                     self.rho[e,i] = param.meanRho
                     self.mu[e,i] = param.meanMu
@@ -230,14 +226,14 @@ class OneDgrid:
         plt.figure(fig)
         sub1=plt.subplot(211)
         plt.hold(True)
-        for e in arange(self.param.nSpec):
+        for e in np.arange(self.param.nSpec):
             for i in np.arange(self.param.nGLL):
                 plt.plot(self.z[self.param.ibool[e,i]],self.rho[e,i],'b+')
         sub1.set_title(r'$\rho(z)$')
         plt.xticks(self.ticks)
         plt.grid(True)
         sub2=plt.subplot(212)
-        for e in arange(self.param.nSpec):
+        for e in np.arange(self.param.nSpec):
             for i in np.arange(self.param.nGLL):
                 plt.plot(self.z[self.param.ibool[e,i]],self.mu[e,i],'r+')
         sub2.set_title(r'$\mu(z)$')
@@ -269,7 +265,7 @@ class Source:
 
     def plotSource(self,fig=1):
         """Plot the source"""
-        t=linspace(0,self.hdur,1000)
+        t = np.linspace(0, self.hdur, 1000)
         plt.figure(fig)
         plt.plot(t,self[t],'b')
         plt.title('Source(t)')

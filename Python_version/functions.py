@@ -8,18 +8,9 @@ elements simulations.
 @author: Alexis Bottero (alexis.bottero@gmail.com)
 """
 
-# --- MODULES AND PACKAGES ---
-import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)
-from numpy import diff
-import scipy as sp  # SciPy (signal and image processing library)
-from scipy import misc
+import numpy as np
 from scipy.interpolate import interp1d
-import matplotlib as mpl         # Matplotlib (2D/3D plotting library)
-import matplotlib.pyplot as plt  # Matplotlib's pyplot: MATLAB-like syntax
-from pylab import *              # Matplotlib's pylab interface
 
-# --- FUNCTIONS ---
-import defines       # Contains all the constants and parameters
 
 def globalArray(nSpec,nGLL):
     """Returns a matrix A. A[element_number,GLL_considered] -> index in the
