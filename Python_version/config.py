@@ -134,7 +134,7 @@ class Parameter(object):
         self.derivGLJ = gll.glj_derivative(self.ksiGLJ)
 
 
-class Source:
+class Source(object):
     """Contains the source properties"""
 
     def __init__(self,param):

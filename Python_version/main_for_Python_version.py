@@ -17,8 +17,8 @@ Main script for 1D spectral elements.
 import numpy as np
 import matplotlib.pyplot as plt
 
-from defines import Parameter
-from defines import Source
+from config import Parameter
+from config import Source
 import functions        # Contains fundamental functions
 from grid import OneDimensionalGrid
 

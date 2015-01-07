@@ -25,7 +25,7 @@ def estimateDt(grid,param):
     dzMin=(grid.z[1:]-grid.z[:len(grid.z)-1]).min()
     dh=param.length/(len(grid.z)-1)
     vMax = np.sqrt(param.meanMu/param.meanRho).max()
-    dt = param.cfl*dh/vMax # defines.CFL*dzMin/vMax # TODO : See why...?!
+    dt = param.cfl*dh/vMax # param.CFL*dzMin/vMax # TODO : See why...?!
     return dt
 #    z0=((ksi+1)/(1-ksi)*ticks[elt_number+1]+ticks[elt_number])*1/(1+(ksi+1)/(1-ksi))
 def invProjection(ksi, elt_number, ticks):
