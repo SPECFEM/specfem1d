@@ -29,16 +29,16 @@ grid = OneDimensionalGrid(param)
 if param.plot:
     grid.plot()
 
-param.dt=functions.estimateDt(grid,param) # estimate the time step in seconds
+param.dt = functions.estimate_timestep(grid, param)
 source=Source(param) # Initialize the source
 if param.plot:
     source.plotSource()
 
 # Computation of stiffness matrices
-Ke=functions.makeStiffness(grid,param)
+Ke = functions.make_stiffness_matrix(grid, param)
 
 # Computation of global mass matrices
-M=functions.makeMass(grid,param)
+M = functions.make_mass_matrix(grid, param)
 
 # Time integration
 u=np.zeros(param.nGlob,dtype='d')

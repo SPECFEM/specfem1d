@@ -28,9 +28,13 @@ class OneDimensionalGrid(object):
                     self.mu[e,i] = param.meanMu
             for i in np.arange(param.nGlob-1)+1:
                 if i < param.nGLJ:
-                    self.z[i]=functions.invProjection(param.ksiGLJ[i],0,self.ticks)
+                    self.z[i] = functions.project_inverse(param.ksiGLJ[i], 0,
+                                                          self.ticks)
                 if i >= param.nGLL and i < param.nGlob-1:
-                    self.z[i]=functions.invProjection(param.ksiGLL[i%param.N],i//param.N,self.ticks)
+                    self.z[i] = functions.project_inverse(
+                        param.ksiGLL[i % param.N],
+                        i // param.N,
+                        self.ticks)
                 else:
                     self.z[param.nGlob-1]=self.ticks[len(self.ticks)-1]
         elif param.gridType == 'gradient':
