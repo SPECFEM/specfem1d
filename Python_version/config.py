@@ -12,6 +12,7 @@ is implemented.
 @author: Alexis Bottero (alexis.bottero@gmail.com)
 """
 
+import argparse
 try:
     # Python 3
     from configparser import SafeConfigParser
@@ -105,6 +106,13 @@ class Parameter(object):
         self.decayRate = cp.getfloat('global', 'DECAY_RATE')
         self.plot = cp.getboolean('global', 'PLOT')
         self.dplot = cp.getfloat('global', 'DPLOT')
+
+        parser = argparse.ArgumentParser(
+            description='Spectral element method in a 1D medium')
+        parser.add_argument('--no-plot', action='store_true',
+                            help='Force disable plotting')
+        args = parser.parse_args()
+        self.plot = self.plot and not args.no_plot
 
         self.nGLL = self.N + 1              # Number of GLL points per elements
         self.nGLJ = self.NGLJ + 1           # Number of GLJ in the first element
