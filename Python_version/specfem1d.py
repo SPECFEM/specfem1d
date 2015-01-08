@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Created on Wed Nov 13 10:30:04 2013
@@ -14,37 +15,31 @@ Main script for 1D spectral elements.
 @author: Alexis Bottero, CNRS Marseille, France (alexis.bottero@gmail.com)
 """
 
-### --- MODULES AND PACKAGES --- ###
-import numpy as np  # NumPy (multidimensional arrays, linear algebra, ...)
-import scipy as sp  # SciPy (signal and image processing library)
-import matplotlib as mpl         # Matplotlib (2D/3D plotting library)
-import matplotlib.pyplot as plt  # Matplotlib's pyplot: MATLAB-like syntax
-from pylab import *              # Matplotlib's pylab interface
+import numpy as np
+import matplotlib.pyplot as plt
 
-### --- FUNCTIONS --- ###
-import defines          # Contains all the constants and parameters
-from defines import Parameter
-from defines import OneDgrid
-from defines import Source
+from config import Parameter
+from config import Source
 import functions        # Contains fundamental functions
+from grid import OneDimensionalGrid
 
 ### --- MAIN BODY --- ###
 # Initialization
 param=Parameter()    # Initialize all the parameters of the run. Store them
-grid=OneDgrid(param) # Initialize the grid from these parameters
+grid = OneDimensionalGrid(param)
 if param.plot:
-    grid.plotGrid()
+    grid.plot()
 
-param.dt=functions.estimateDt(grid,param) # estimate the time step in seconds
+param.dt = functions.estimate_timestep(grid, param)
 source=Source(param) # Initialize the source
 if param.plot:
     source.plotSource()
 
 # Computation of stiffness matrices
-Ke=functions.makeStiffness(grid,param)
+Ke = functions.make_stiffness_matrix(grid, param)
 
 # Computation of global mass matrices
-M=functions.makeMass(grid,param)
+M = functions.make_mass_matrix(grid, param)
 
 # Time integration
 u=np.zeros(param.nGlob,dtype='d')
@@ -55,7 +50,7 @@ if param.plot:
     fig = plt.figure()
     plt.hold(False)
     bz = -np.array([i for i in reversed(grid.z)])
-    cz = append(bz, grid.z)
+    cz = np.append(bz, grid.z)
 
 # Main time loop :
 for it in np.arange(param.nts):
@@ -78,7 +73,7 @@ for it in np.arange(param.nts):
     if param.plot and it % param.dplot == 0:
         if param.axisym:
             b=np.array([i for i in reversed(u)])
-            c=append(b,u)
+            c = np.append(b, u)
             plt.plot(cz,c)
             plt.xlim([-max(grid.z),max(grid.z)])
             plt.ylim([-10,10]) #plt.ylim([0,0.01])
