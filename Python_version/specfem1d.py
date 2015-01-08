@@ -16,7 +16,6 @@ Main script for 1D spectral elements.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 from config import Parameter
 from config import Source
@@ -46,6 +45,7 @@ u=np.zeros(param.nGlob,dtype='d')
 vel,acc=np.zeros_like(u),np.zeros_like(u)
 
 if param.plot:
+    import matplotlib.pyplot as plt
     plt.ion()
     fig = plt.figure()
     plt.hold(False)

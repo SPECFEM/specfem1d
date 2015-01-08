@@ -20,7 +20,6 @@ except ImportError:
     from ConfigParser import SafeConfigParser
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 import gll
 import functions
@@ -166,6 +165,7 @@ class Source(object):
 
     def plotSource(self,fig=1):
         """Plot the source"""
+        import matplotlib.pyplot as plt
         t = np.linspace(0, self.hdur, 1000)
         plt.figure(fig)
         plt.plot(t,self[t],'b')
