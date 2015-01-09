@@ -53,28 +53,28 @@ class OneDimensionalGrid(object):
         self.dXdKsi = gll.jacobian(self.ticks, param)
         self.dKsiDx = gll.jacobian_inverse(self.ticks, param)
 
-    def plot(self, fig=0):
+    def plot(self):
         """Plot the grid
         my_ticks gives the abscissa of the borders
         TODO I should test : _the types of the parameters
                              _their sizes"""
         import matplotlib.pyplot as plt
-        plt.figure(fig)
-        sub1=plt.subplot(211)
-        plt.hold(True)
-        for e in np.arange(self.param.nSpec):
-            for i in np.arange(self.param.nGLL):
-                plt.plot(self.z[self.param.ibool[e,i]],self.rho[e,i],'b+')
-        sub1.set_title(r'$\rho(z)$')
-        plt.xticks(self.ticks)
-        plt.grid(True)
-        sub2=plt.subplot(212)
-        for e in np.arange(self.param.nSpec):
-            for i in np.arange(self.param.nGLL):
-                plt.plot(self.z[self.param.ibool[e,i]],self.mu[e,i],'r+')
-        sub2.set_title(r'$\mu(z)$')
-        plt.suptitle(" Grid ")
-        plt.xticks(self.ticks)
-        plt.grid(True)
+        from matplotlib.ticker import FixedLocator
+
+        fig, ax = plt.subplots(2, 1, sharex=True)
+
+        ax[0].plot(self.z[self.param.ibool].flat, self.rho.flat, 'b+')
+        ax[0].set_title(r'$\rho(z)$')
+        ax[0].xaxis.set_minor_locator(FixedLocator(self.ticks))
+        ax[0].xaxis.grid(True, which='minor', alpha=0.5)
+        ax[0].yaxis.grid(True)
+
+        ax[1].plot(self.z[self.param.ibool].flat, self.mu.flat, 'r+')
+        ax[1].set_title(r'$\mu(z)$')
+        ax[1].xaxis.set_minor_locator(FixedLocator(self.ticks))
+        ax[1].xaxis.grid(True, which='minor', alpha=0.5)
+        ax[1].yaxis.grid(True)
+
+        plt.suptitle('Grid')
+
         plt.show()
-        plt.hold(False)
