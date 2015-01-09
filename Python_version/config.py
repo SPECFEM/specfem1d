@@ -147,7 +147,7 @@ class Parameter(object):
         """Returns a matrix A. A[element_number,GLL_considered] -> index in the
         global array, if we work in axisym and that the element number is 0 the points
         are GLJ points"""
-        ibool = np.zeros((self.nSpec, self.nGLL), dtype='d')
+        ibool = np.zeros((self.nSpec, self.nGLL), dtype=np.intp)
         for e in np.arange(self.nSpec):
             for i in np.arange(self.nGLL):
                 ibool[e,i] = (self.nGLL - 1) * e + i

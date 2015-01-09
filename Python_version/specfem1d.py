@@ -62,7 +62,7 @@ for it in np.arange(param.nts):
         acc[:] = 0.
 
     for e in np.arange(param.nSpec):
-        acc[list(param.ibool[e,:])] -= np.dot(Ke[e,:,:],u[list(param.ibool[e,:])])
+        acc[param.ibool[e,:]] -= np.dot(Ke[e,:,:], u[param.ibool[e,:]])
 
     acc[param.iSource] += source[it*param.dt]
 #    # Boundary conditions :
