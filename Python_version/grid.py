@@ -4,7 +4,6 @@ Definitions of the grid.
 '''
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 import functions
 import gll
@@ -59,6 +58,7 @@ class OneDimensionalGrid(object):
         my_ticks gives the abscissa of the borders
         TODO I should test : _the types of the parameters
                              _their sizes"""
+        import matplotlib.pyplot as plt
         plt.figure(fig)
         sub1=plt.subplot(211)
         plt.hold(True)

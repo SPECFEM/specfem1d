@@ -12,6 +12,7 @@ is implemented.
 @author: Alexis Bottero (alexis.bottero@gmail.com)
 """
 
+import argparse
 try:
     # Python 3
     from configparser import SafeConfigParser
@@ -20,7 +21,6 @@ except ImportError:
     from ConfigParser import SafeConfigParser
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 import gll
 import functions
@@ -107,6 +107,13 @@ class Parameter(object):
         self.plot = cp.getboolean('global', 'PLOT')
         self.dplot = cp.getfloat('global', 'DPLOT')
 
+        parser = argparse.ArgumentParser(
+            description='Spectral element method in a 1D medium')
+        parser.add_argument('--no-plot', action='store_true',
+                            help='Force disable plotting')
+        args = parser.parse_args()
+        self.plot = self.plot and not args.no_plot
+
         self.nGLL = self.N + 1              # Number of GLL points per elements
         self.nGLJ = self.NGLJ + 1           # Number of GLJ in the first element
         self.nGlob = (self.nSpec - 1) * self.N + self.NGLJ + 1  # Number of points in the array
@@ -166,6 +173,7 @@ class Source(object):
 
     def plotSource(self,fig=1):
         """Plot the source"""
+        import matplotlib.pyplot as plt
         t = np.linspace(0, self.hdur, 1000)
         plt.figure(fig)
         plt.plot(t,self[t],'b')
