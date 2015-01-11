@@ -122,11 +122,9 @@ def jacobian(ticks, param):
        (and GLJ points for the first element in axisymmetric).
        Returns a matrix nSpec*(N+1) containing its value for each element and
        each points"""
-    dE=ticks[1:]-ticks[:len(ticks)-1] # dE[i] : length of element number i
-    dXdKsi=np.zeros((len(dE),len(param.ksiGLL)),dtype='d')
-    for e in np.arange(len(dE)):
-        for k in np.arange(len(param.ksiGLL)):
-            dXdKsi[e,k] = dE[e]/2 # Here it does not depend on ksi
+    Np1 = len(param.ksiGLL)
+    dE = np.diff(ticks) / 2
+    dXdKsi = np.repeat(dE, Np1).reshape((-1, Np1))
     return dXdKsi
 
 
@@ -135,9 +133,7 @@ def jacobian_inverse(ticks, param):
        (and GLJ points for the first element in axisymmetric).
        Returns a matrix nSpec*(N+1) containing its value for each element and
        each points"""
-    dE=ticks[1:]-ticks[:len(ticks)-1] # dE[i] : length of element number i
-    dKsiDx=np.zeros((len(dE),len(param.ksiGLL)),dtype='d')
-    for e in np.arange(len(dE)):
-        for k in np.arange(len(param.ksiGLL)):
-            dKsiDx[e,k] = 2/dE[e]   # Here it does not depend on ksi
+    Np1 = len(param.ksiGLL)
+    dE = 2 / np.diff(ticks)
+    dKsiDx = np.repeat(dE, Np1).reshape((-1, Np1))
     return dKsiDx
