@@ -30,38 +30,29 @@ def project_inverse(ksi, elt_number, ticks):
 
 def make_stiffness_matrix(grid, param):
     """Computation of stiffness matrices"""
-    Ke=np.zeros((param.nSpec,param.nGLL,param.nGLL),dtype='d')
-    for e in np.arange(param.nSpec):
+    Ke = np.zeros((param.nSpec, param.nGLL, param.nGLL))
+    for e in range(param.nSpec):
         if param.axisym and e == 0:
-            Ke[e,:,:] = _make_stiffness_first_elem(grid, param)
+            gllj = param.wGLJ
+            ngllj = param.nGLJ
+            deriv = param.derivGLJ
         else:
-            for i in np.arange(param.nGLL):
-                for j in np.arange(param.nGLL):
-                    sumk=0
-                    for k in np.arange(param.nGLL):
-                        if param.axisym is not True:
-                            sumk+=param.wGLL[k]*grid.mu[e,k]*param.deriv[i,k]* \
-                            param.deriv[j,k]*(grid.dKsiDx[e,k]**2)* \
-                            grid.dXdKsi[e,k]
-                        else:
-                            sumk+=param.wGLL[k]*grid.mu[e,k]*param.deriv[i,k]* \
-                            param.deriv[j,k]*(grid.dKsiDx[e,k]**2)* \
-                            grid.dXdKsi[e,k]*project_inverse(param.ksiGLL[k],e,grid.ticks)/project_inverse(param.ksiGLL[i],e,grid.ticks)
-                    Ke[e,i,j]= sumk
+            gllj = param.wGLL
+            ngllj = param.nGLL
+            deriv = param.deriv
+
+        tmpe = gllj * grid.mu[e,:] * grid.dKsiDx[e,:]**2 * grid.dXdKsi[e,:]
+        if param.axisym and e != 0:
+            tmpe *= project_inverse(param.ksiGLL, e, grid.ticks)
+
+        for i in range(ngllj):
+            tmpi = deriv[i,:] * tmpe
+            if param.axisym and e != 0:
+                tmpi /= project_inverse(param.ksiGLL[i], e, grid.ticks)
+
+            Ke[e,i,:] = np.inner(tmpi, deriv)
+
     return Ke
-
-
-def _make_stiffness_first_elem(grid, param):
-    """Computation of stiffness matrix for the first element"""
-    K0=np.zeros((param.nGLJ,param.nGLJ),dtype='d')
-    for i in np.arange(param.nGLJ):
-        for j in np.arange(param.nGLJ):
-            sumk=0
-            for k in np.arange(param.nGLJ):
-                sumk+=param.wGLJ[k]*grid.mu[0,k]*param.derivGLJ[i,k]* \
-                param.derivGLJ[j,k]*(grid.dKsiDx[0,k]**2)*grid.dXdKsi[0,k]
-            K0[i,j]= sumk
-    return K0
 
 
 def make_mass_matrix(grid,param):
