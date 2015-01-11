@@ -55,16 +55,18 @@ def make_stiffness_matrix(grid, param):
     return Ke
 
 
-def make_mass_matrix(grid,param):
+def make_mass_matrix(grid, param):
     """Computation of global mass matrix"""
-    M=np.zeros(param.nGlob,dtype='d')
-    for e in np.arange(param.nSpec):
-        for i in np.arange(param.nGLL):
-            if param.axisym and e != 0:
-                Me=param.wGLL[i]*grid.rho[e,i]*grid.dXdKsi[e,i]#*project_inverse(param.ksiGLL[i],e,grid.ticks) # Axisym
-            if param.axisym and e == 0:
-                Me=param.wGLJ[i]*grid.rho[e,i]*grid.dXdKsi[e,i]
-            else:
-                Me=param.wGLL[i]*grid.rho[e,i]*grid.dXdKsi[e,i]#*project_inverse(param.ksiGLL[i],e,grid.ticks)
-            M[param.ibool[e,i]]+=Me
+    M = np.zeros(param.nGlob)
+    # NOTE: We cannot simply drop this outer loop because param.ibool contains
+    # repeated indices into M and the addition would not work correctly if we
+    # tried to slice it in.
+    for e in range(param.nSpec):
+        if param.axisym and e == 0:
+            Me = param.wGLJ * grid.rho[e,:] * grid.dXdKsi[e,:]
+        else:
+            Me = param.wGLL * grid.rho[e,:] * grid.dXdKsi[e,:]
+        # We can still slice along the second index because the individual GLL
+        # points are assumed to not repeat a point within an spectral element.
+        M[param.ibool[e,:]] += Me
     return M
