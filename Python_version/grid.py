@@ -19,23 +19,25 @@ class OneDimensionalGrid(object):
         self.rho=np.zeros((param.nSpec,param.nGLL))
         self.mu=np.zeros((param.nSpec,param.nGLL))
         self.ticks=np.zeros(param.nSpec+1)
+
         if param.gridType == 'homogeneous':
             self.ticks = np.linspace(0, param.length, param.nSpec + 1)
-            for e in np.arange(param.nSpec):
-                for i in np.arange(param.nGLL):
-                    self.rho[e,i] = param.meanRho
-                    self.mu[e,i] = param.meanMu
-            for i in np.arange(param.nGlob-1)+1:
-                if i < param.nGLJ:
-                    self.z[i] = functions.project_inverse(param.ksiGLJ[i], 0,
-                                                          self.ticks)
-                if i >= param.nGLL and i < param.nGlob-1:
-                    self.z[i] = functions.project_inverse(
-                        param.ksiGLL[i % param.N],
-                        i // param.N,
-                        self.ticks)
-                else:
-                    self.z[param.nGlob-1]=self.ticks[len(self.ticks)-1]
+            self.rho.fill(param.meanRho)
+            self.mu.fill(param.meanMu)
+
+            self.z[1:param.nGLJ] = functions.project_inverse(
+                param.ksiGLJ[1:param.nGLJ],
+                0,
+                self.ticks)
+
+            ksiGLL = param.ksiGLL[1:]
+            for i in range(param.nGLL, param.nGlob, param.N):
+                self.z[i:i + param.N] = functions.project_inverse(ksiGLL,
+                                                                  i // param.N,
+                                                                  self.ticks)
+
+            self.z[-1] = self.ticks[-1]
+
         elif param.gridType == 'gradient':
             print "typeOfGrid == 'gradient' Has not been implemented yet"
             raise
