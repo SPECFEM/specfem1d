@@ -112,7 +112,7 @@ def glj_derivative(ksiGLJ):
             elif 0 < i < N and j == N:
                 deriv[i,j] = 1/(1-ksiGLJ[i])*1/PbInterp(ksiGLJ[i])
             elif i == N and j == 0:
-                deriv[i,j] = (-1)**(N+1)*(N+1)/4
+                deriv[i,j] = (-1)**(N+1)*(N+1)/4.
             elif i == N and 0 < j < N:
                 deriv[i,j] = -1/(1-ksiGLJ[j])*PbInterp(ksiGLJ[j])
             elif i == N and j == N:
