@@ -70,14 +70,11 @@ def lagrange_derivative(ksiGLL):
                 for m in range(N+1):
                     if m!=i:
                         prod1 *= 1/(ksiGLL[i]-ksiGLL[m])
-                sum1=0.
-                for m in range(N+1):
-                    prod2=1.
-                    for k in range(N+1):
-                        if k!=m and k!=i:
-                            prod2 *= (ksiGLL[j]-ksiGLL[k])
-                    sum1 += prod2
-                deriv[i,j]=prod1*sum1
+                prod2=1.
+                for k in range(N+1):
+                    if k!=j and k!=i:
+                        prod2 *= (ksiGLL[j]-ksiGLL[k])
+                deriv[i,j]=prod1*prod2
     return deriv
 
 
@@ -112,7 +109,7 @@ def glj_derivative(ksiGLJ):
             elif 0 < i < N and j == N:
                 deriv[i,j] = 1/(1-ksiGLJ[i])*1/PbInterp(ksiGLJ[i])
             elif i == N and j == 0:
-                deriv[i,j] = (-1)**(N+1)*(N+1)/4
+                deriv[i,j] = (-1)**(N+1)*(N+1)/4.
             elif i == N and 0 < j < N:
                 deriv[i,j] = -1/(1-ksiGLJ[j])*PbInterp(ksiGLJ[j])
             elif i == N and j == N:
