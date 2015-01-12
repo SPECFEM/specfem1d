@@ -70,14 +70,11 @@ def lagrange_derivative(ksiGLL):
                 for m in range(N+1):
                     if m!=i:
                         prod1 *= 1/(ksiGLL[i]-ksiGLL[m])
-                sum1=0.
-                for m in range(N+1):
-                    prod2=1.
-                    for k in range(N+1):
-                        if k!=m and k!=i:
-                            prod2 *= (ksiGLL[j]-ksiGLL[k])
-                    sum1 += prod2
-                deriv[i,j]=prod1*sum1
+                prod2=1.
+                for k in range(N+1):
+                    if k!=j and k!=i:
+                        prod2 *= (ksiGLL[j]-ksiGLL[k])
+                deriv[i,j]=prod1*prod2
     return deriv
 
 
