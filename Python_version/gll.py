@@ -81,39 +81,44 @@ def lagrange_derivative(ksiGLL):
 def glj_derivative(ksiGLJ):
     """Calculates the values of the derivative of the polynomials associated
     to the Gauss-Lobatto-Jacobi quadrature at the GLJ points"""
-    N=len(ksiGLJ)-1
-    deriv=np.zeros((N+1,N+1),dtype='d')
-    lenX=100000
-    xi = np.linspace(-1,1,lenX)
-    xi2=(xi[1:len(xi)]+xi[0:len(xi)-1])/2
-    dxi=xi[1]-xi[0]
-    P = np.polynomial.legendre.legval(xi, np.identity(8))
-    Pb=np.zeros_like(P[N])
-    Pb[1:]=(P[N][1:]+P[N+1][1:])/(1.+xi[1:])
-    Pb[0]=round(Pb[1]) # =+-(N+1)
-    PbInterp = interp1d(xi, Pb)
-    for i in np.arange(N+1):
-        for j in np.arange(N+1):
-            if i == 0 and j == 0:
-                deriv[i,j] = -N*(N+2.)/6.
-            elif i == 0 and 0 < j < N:
-                deriv[i,j] = 2*(-1)**N*PbInterp(ksiGLJ[j])/((1+ksiGLJ[j])*(N+1))
-            elif i == 0 and j == N:
-                deriv[i,j] = (-1)**N/(N+1)
-            elif 0 < i < N and j == 0:
-                deriv[i,j] = (-1)**(N+1)*(N+1)/(2*PbInterp(ksiGLJ[i])*(1+ksiGLJ[i]))
-            elif 0 < i < N and 0 < j < N and i != j:
-                deriv[i,j] = 1/(ksiGLJ[j]-ksiGLJ[i])*PbInterp(ksiGLJ[j])/PbInterp(ksiGLJ[i])
-            elif 0 < i < N and i == j:
-                deriv[i,j] = -1/(2*(1+ksiGLJ[i]))
-            elif 0 < i < N and j == N:
-                deriv[i,j] = 1/(1-ksiGLJ[i])*1/PbInterp(ksiGLJ[i])
-            elif i == N and j == 0:
-                deriv[i,j] = (-1)**(N+1)*(N+1)/4.
-            elif i == N and 0 < j < N:
-                deriv[i,j] = -1/(1-ksiGLJ[j])*PbInterp(ksiGLJ[j])
-            elif i == N and j == N:
-                deriv[i,j] = (N*(N+2)-1.)/4.
+    N = len(ksiGLJ) - 1
+    # Only need interior points. Exterior points need special treatment.
+    ksiGLJ = ksiGLJ[1:N]
+
+    coef = np.zeros(N + 2)
+    coef[N:] = 1.0
+    L = np.polynomial.legendre.Legendre(coef)
+    Ld = L.deriv()
+    glj_poly = Ld(ksiGLJ)
+
+    deriv = np.zeros((N + 1, N + 1))
+
+    # Top row
+    deriv[0, 0] = -N * (N + 2) / 6.0
+    deriv[0, 1:N] = 2 * (-1)**N * glj_poly / ((1 + ksiGLJ) * (N + 1))
+    deriv[0, N] = (-1)**N / (N + 1)
+
+    # Left column
+    deriv[1:N, 0] = (-1)**(N + 1) * (N + 1) / (2 * glj_poly * (1 + ksiGLJ))
+
+    # Middle block
+    for i in range(1, N):
+        # The index for ksiGLJ and glj_poly is shifted because we dropped the
+        # first element earlier.
+        deriv[i, i] = -1 / (2 * (1 + ksiGLJ[i - 1]))
+        deriv[i, i + 1:N] = (glj_poly[i:] / glj_poly[i - 1] /
+                             (ksiGLJ[i:] - ksiGLJ[i - 1]))
+        deriv[i + 1:N, i] = (glj_poly[i - 1] / glj_poly[i:] /
+                             (ksiGLJ[i - 1] - ksiGLJ[i:]))
+
+    # Right column
+    deriv[1:N, N] = 1 / (1 - ksiGLJ) / glj_poly
+
+    # Bottom row
+    deriv[N, 0] = (-1)**(N + 1) * (N + 1) / 4.0
+    deriv[N, 1:N] = -1 / (1 - ksiGLJ) * glj_poly
+    deriv[N, N] = (N * (N + 2) - 1) / 4.0
+
     return deriv
 
 
