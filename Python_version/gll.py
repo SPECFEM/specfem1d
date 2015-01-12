@@ -56,25 +56,39 @@ def lagrange_derivative(ksiGLL):
     """Calculates the values of the derivative of the Lagrange polynomials
     at the GLL points"""
     N = len(ksiGLL) - 1
-    deriv=np.zeros((N+1,N+1),dtype='d')
-    for i in range(N+1):
-        for j in range(N+1):
+    deriv = np.zeros((N + 1, N + 1))
+
+    # AKA: diffs[i,j] = ksiGLL[i] - ksiGLL[j]
+    diffs = ksiGLL[:, np.newaxis] - ksiGLL[np.newaxis, :]
+
+    for i in range(N + 1):
+        # Exclude i since ksiGLL[i] - ksiGLL[i] is obviously 0.
+        prod1 = np.product(diffs[i, :i]) * np.product(diffs[i, i + 1:])
+        prod1 = 1 / prod1
+
+        for j in range(N + 1):
             if i == 0 and j == 0:
-                deriv[i,j] = -N*(N+1.)/4.
+                deriv[i, j] = -N * (N + 1) / 4.0
+
             elif i == N and j == N:
-                deriv[i,j] = N*(N+1.)/4.
-            elif i == j:
-                deriv[i,j] = 0.
-            else:
-                prod1=1.
-                for m in range(N+1):
-                    if m!=i:
-                        prod1 *= 1/(ksiGLL[i]-ksiGLL[m])
-                prod2=1.
-                for k in range(N+1):
-                    if k!=j and k!=i:
-                        prod2 *= (ksiGLL[j]-ksiGLL[k])
-                deriv[i,j]=prod1*prod2
+                deriv[i, j] = N * (N + 1) / 4.0
+
+            elif i < j:
+                # Just like prod1, but excluding i and j.
+                prod2 = (np.product(diffs[j, :i]) *
+                         np.product(diffs[j, i + 1:j]) *
+                         np.product(diffs[j, j + 1:]))
+
+                deriv[i, j] = prod1 * prod2
+
+            elif i > j:
+                # Just like prod1, but excluding j and i.
+                prod2 = (np.product(diffs[j, :j]) *
+                         np.product(diffs[j, j + 1:i]) *
+                         np.product(diffs[j, i + 1:]))
+
+                deriv[i, j] = prod1 * prod2
+
     return deriv
 
 
