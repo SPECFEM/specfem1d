@@ -48,6 +48,13 @@ NTS = 20000
 # Courant CFL number
 CFL = 0.45
 
+#############
+# Snapshots #
+#############
+
+# Time steps between snapshot output. Disabled if 0.
+SNAPSHOT = 1000000
+
 #########
 # Plots #
 #########
