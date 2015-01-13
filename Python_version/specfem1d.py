@@ -49,6 +49,7 @@ if param.plot:
     plt.ion()
     fig = plt.figure()
     plt.hold(False)
+if param.axisym and (param.plot or param.snapshot):
     bz = -np.array([i for i in reversed(grid.z)])
     cz = np.append(bz, grid.z)
 
@@ -69,6 +70,14 @@ for it in np.arange(param.nts):
 #    acc[len(acc)-1] = 0.
     acc[:] /= M[:]
     vel[:] += param.dt/2*acc[:]
+
+    if param.snapshot and (it % param.snapshot == 0 or it == param.nts - 1):
+        name = 'snapshot_forward_normal%05d' % (it, )
+        if param.axisym:
+            c = np.concatenate((u[::-1], u))
+            np.savetxt(name, np.column_stack((cz, c)))
+        else:
+            np.savetxt(name, np.column_stack((grid.z, u)))
 
     if param.plot and it % param.dplot == 0:
         if param.axisym:

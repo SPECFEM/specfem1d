@@ -79,6 +79,8 @@ class Parameter(object):
             'SOURCE_TYPE': 'ricker',
             # Decay rate for the ricker
             'DECAY_RATE': 2.628,
+            # Time steps between snapshots (0 == disabled)
+            'SNAPSHOT': 0,
             # Plot grid, source, and periodic results
             'PLOT': False,
             # One image is displayed each DPLOT time step
@@ -104,6 +106,7 @@ class Parameter(object):
         self.maxAmpl = cp.getfloat('global', 'MAX_AMPL')
         self.sourceType = cp.get('global', 'SOURCE_TYPE').strip("'\"")
         self.decayRate = cp.getfloat('global', 'DECAY_RATE')
+        self.snapshot = cp.getint('global', 'SNAPSHOT')
         self.plot = cp.getboolean('global', 'PLOT')
         self.dplot = cp.getfloat('global', 'DPLOT')
 
