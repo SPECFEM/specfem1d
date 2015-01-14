@@ -56,64 +56,83 @@ def lagrange_derivative(ksiGLL):
     """Calculates the values of the derivative of the Lagrange polynomials
     at the GLL points"""
     N = len(ksiGLL) - 1
-    deriv=np.zeros((N+1,N+1),dtype='d')
-    for i in range(N+1):
-        for j in range(N+1):
+    deriv = np.zeros((N + 1, N + 1))
+
+    # AKA: diffs[i,j] = ksiGLL[i] - ksiGLL[j]
+    diffs = ksiGLL[:, np.newaxis] - ksiGLL[np.newaxis, :]
+
+    for i in range(N + 1):
+        # Exclude i since ksiGLL[i] - ksiGLL[i] is obviously 0.
+        prod1 = np.product(diffs[i, :i]) * np.product(diffs[i, i + 1:])
+        prod1 = 1 / prod1
+
+        for j in range(N + 1):
             if i == 0 and j == 0:
-                deriv[i,j] = -N*(N+1.)/4.
+                deriv[i, j] = -N * (N + 1) / 4.0
+
             elif i == N and j == N:
-                deriv[i,j] = N*(N+1.)/4.
-            elif i == j:
-                deriv[i,j] = 0.
-            else:
-                prod1=1.
-                for m in range(N+1):
-                    if m!=i:
-                        prod1 *= 1/(ksiGLL[i]-ksiGLL[m])
-                prod2=1.
-                for k in range(N+1):
-                    if k!=j and k!=i:
-                        prod2 *= (ksiGLL[j]-ksiGLL[k])
-                deriv[i,j]=prod1*prod2
+                deriv[i, j] = N * (N + 1) / 4.0
+
+            elif i < j:
+                # Just like prod1, but excluding i and j.
+                prod2 = (np.product(diffs[j, :i]) *
+                         np.product(diffs[j, i + 1:j]) *
+                         np.product(diffs[j, j + 1:]))
+
+                deriv[i, j] = prod1 * prod2
+
+            elif i > j:
+                # Just like prod1, but excluding j and i.
+                prod2 = (np.product(diffs[j, :j]) *
+                         np.product(diffs[j, j + 1:i]) *
+                         np.product(diffs[j, i + 1:]))
+
+                deriv[i, j] = prod1 * prod2
+
     return deriv
 
 
 def glj_derivative(ksiGLJ):
     """Calculates the values of the derivative of the polynomials associated
     to the Gauss-Lobatto-Jacobi quadrature at the GLJ points"""
-    N=len(ksiGLJ)-1
-    deriv=np.zeros((N+1,N+1),dtype='d')
-    lenX=100000
-    xi = np.linspace(-1,1,lenX)
-    xi2=(xi[1:len(xi)]+xi[0:len(xi)-1])/2
-    dxi=xi[1]-xi[0]
-    P = np.polynomial.legendre.legval(xi, np.identity(8))
-    Pb=np.zeros_like(P[N])
-    Pb[1:]=(P[N][1:]+P[N+1][1:])/(1.+xi[1:])
-    Pb[0]=round(Pb[1]) # =+-(N+1)
-    PbInterp = interp1d(xi, Pb)
-    for i in np.arange(N+1):
-        for j in np.arange(N+1):
-            if i == 0 and j == 0:
-                deriv[i,j] = -N*(N+2.)/6.
-            elif i == 0 and 0 < j < N:
-                deriv[i,j] = 2*(-1)**N*PbInterp(ksiGLJ[j])/((1+ksiGLJ[j])*(N+1))
-            elif i == 0 and j == N:
-                deriv[i,j] = (-1)**N/(N+1)
-            elif 0 < i < N and j == 0:
-                deriv[i,j] = (-1)**(N+1)*(N+1)/(2*PbInterp(ksiGLJ[i])*(1+ksiGLJ[i]))
-            elif 0 < i < N and 0 < j < N and i != j:
-                deriv[i,j] = 1/(ksiGLJ[j]-ksiGLJ[i])*PbInterp(ksiGLJ[j])/PbInterp(ksiGLJ[i])
-            elif 0 < i < N and i == j:
-                deriv[i,j] = -1/(2*(1+ksiGLJ[i]))
-            elif 0 < i < N and j == N:
-                deriv[i,j] = 1/(1-ksiGLJ[i])*1/PbInterp(ksiGLJ[i])
-            elif i == N and j == 0:
-                deriv[i,j] = (-1)**(N+1)*(N+1)/4.
-            elif i == N and 0 < j < N:
-                deriv[i,j] = -1/(1-ksiGLJ[j])*PbInterp(ksiGLJ[j])
-            elif i == N and j == N:
-                deriv[i,j] = (N*(N+2)-1.)/4.
+    N = len(ksiGLJ) - 1
+    # Only need interior points. Exterior points need special treatment.
+    ksiGLJ = ksiGLJ[1:N]
+
+    coef = np.zeros(N + 2)
+    coef[N:] = 1.0
+    L = np.polynomial.legendre.Legendre(coef)
+    Ld = L.deriv()
+    glj_poly = Ld(ksiGLJ)
+
+    deriv = np.zeros((N + 1, N + 1))
+
+    # Top row
+    deriv[0, 0] = -N * (N + 2) / 6.0
+    deriv[0, 1:N] = 2 * (-1)**N * glj_poly / ((1 + ksiGLJ) * (N + 1))
+    deriv[0, N] = (-1)**N / (N + 1)
+
+    # Left column
+    deriv[1:N, 0] = (-1)**(N + 1) * (N + 1) / (2 * glj_poly * (1 + ksiGLJ))
+
+    # Middle block
+    for i in range(1, N):
+        # The index for ksiGLJ and glj_poly is shifted because we dropped the
+        # first element earlier.
+        deriv[i, i] = -1 / (2 * (1 + ksiGLJ[i - 1]))
+        deriv[i, i + 1:N] = (glj_poly[i:] / glj_poly[i - 1] /
+                             (ksiGLJ[i:] - ksiGLJ[i - 1]))
+        deriv[i + 1:N, i] = (glj_poly[i - 1] / glj_poly[i:] /
+                             (ksiGLJ[i - 1] - ksiGLJ[i:]))
+
+    # Right column
+    deriv[1:N, N] = 1 / (1 - ksiGLJ) / glj_poly
+
+    # Bottom row
+    deriv[N, 0] = (-1)**(N + 1) * (N + 1) / 4.0
+    deriv[N, 1:N] = -1 / (1 - ksiGLJ) * glj_poly
+    deriv[N, N] = (N * (N + 2) - 1) / 4.0
+
     return deriv
 
 
@@ -122,11 +141,9 @@ def jacobian(ticks, param):
        (and GLJ points for the first element in axisymmetric).
        Returns a matrix nSpec*(N+1) containing its value for each element and
        each points"""
-    dE=ticks[1:]-ticks[:len(ticks)-1] # dE[i] : length of element number i
-    dXdKsi=np.zeros((len(dE),len(param.ksiGLL)),dtype='d')
-    for e in np.arange(len(dE)):
-        for k in np.arange(len(param.ksiGLL)):
-            dXdKsi[e,k] = dE[e]/2 # Here it does not depend on ksi
+    Np1 = len(param.ksiGLL)
+    dE = np.diff(ticks) / 2
+    dXdKsi = np.repeat(dE, Np1).reshape((-1, Np1))
     return dXdKsi
 
 
@@ -135,9 +152,7 @@ def jacobian_inverse(ticks, param):
        (and GLJ points for the first element in axisymmetric).
        Returns a matrix nSpec*(N+1) containing its value for each element and
        each points"""
-    dE=ticks[1:]-ticks[:len(ticks)-1] # dE[i] : length of element number i
-    dKsiDx=np.zeros((len(dE),len(param.ksiGLL)),dtype='d')
-    for e in np.arange(len(dE)):
-        for k in np.arange(len(param.ksiGLL)):
-            dKsiDx[e,k] = 2/dE[e]   # Here it does not depend on ksi
+    Np1 = len(param.ksiGLL)
+    dE = 2 / np.diff(ticks)
+    dKsiDx = np.repeat(dE, Np1).reshape((-1, Np1))
     return dKsiDx
