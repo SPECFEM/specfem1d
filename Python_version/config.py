@@ -23,13 +23,13 @@ except ImportError:
 import numpy as np
 
 import gll
-import functions
 
 
 class FakeGlobalSectionHead(object):
     def __init__(self, fp):
         self.fp = fp
         self.sechead = '[global]\n'
+
     def readline(self):
         if self.sechead:
             try:
@@ -117,13 +117,17 @@ class Parameter(object):
         args = parser.parse_args()
         self.plot = self.plot and not args.no_plot
 
-        self.nGLL = self.N + 1              # Number of GLL points per elements
-        self.nGLJ = self.NGLJ + 1           # Number of GLJ in the first element
-        self.nGlob = (self.nSpec - 1) * self.N + self.NGLJ + 1  # Number of points in the array
-        self.ibool = self.make_global_index()  # TODO: add GLJ
-        self.dt = 0                       # Time step (will be updated)
+        # Number of GLL points per elements
+        self.nGLL = self.N + 1
+        # Number of GLJ in the first element
+        self.nGLJ = self.NGLJ + 1
+        # Number of points in the array
+        self.nGlob = (self.nSpec - 1) * self.N + self.NGLJ + 1
+        self.ibool = self.make_global_index()
+        # Time step (will be updated)
+        self.dt = 0
 
-        # Gauss Lobatto Legendre points and integration weights :
+        # Gauss Lobatto Legendre points and integration weights:
         try:
             # Position of the GLL points in [-1,1]
             self.ksiGLL = gll.GLL_POINTS[self.N]
@@ -145,41 +149,43 @@ class Parameter(object):
 
     def make_global_index(self):
         """Returns a matrix A. A[element_number,GLL_considered] -> index in the
-        global array, if we work in axisym and that the element number is 0 the points
-        are GLJ points"""
+        global array, if we work in axisym and that the element number is 0 the
+        points are GLJ points"""
+        # TODO: add GLJ
         ibool = np.zeros((self.nSpec, self.nGLL), dtype=np.intp)
         for e in np.arange(self.nSpec):
             for i in np.arange(self.nGLL):
-                ibool[e,i] = (self.nGLL - 1) * e + i
+                ibool[e, i] = (self.nGLL - 1) * e + i
         return ibool
 
 
 class Source(object):
     """Contains the source properties"""
 
-    def __init__(self,param):
+    def __init__(self, param):
         """Init"""
-        self.typeOfSource=param.sourceType
-        self.ampl=param.maxAmpl
+        self.typeOfSource = param.sourceType
+        self.ampl = param.maxAmpl
         if self.typeOfSource == 'ricker':
-            self.hdur = param.tSource*param.dt # Duration of the source (s)
-            self.decayRate = param.decayRate #2.628
-            self.alpha = self.decayRate/self.hdur
+            self.hdur = param.tSource * param.dt  # Duration of the source (s)
+            self.decayRate = param.decayRate
+            self.alpha = self.decayRate / self.hdur
         else:
             print "Unknown source's type"
             raise
 
-    def __getitem__(self,t):
+    def __getitem__(self, t):
         """What happens when we do source[t]"""
-        t-=self.hdur
-        return self.ampl*-2.*(self.alpha**3)*t*np.exp(-self.alpha*self.alpha*t*t)/np.sqrt(np.pi)
+        t -= self.hdur
+        return -2 * self.ampl * self.alpha**3 / np.sqrt(np.pi) * (
+            t * np.exp(-(self.alpha * t)**2))
 
-    def plotSource(self,fig=1):
+    def plotSource(self):
         """Plot the source"""
         import matplotlib.pyplot as plt
         t = np.linspace(0, self.hdur, 1000)
-        plt.figure(fig)
-        plt.plot(t,self[t],'b')
+        plt.figure()
+        plt.plot(t, self[t], 'b')
         plt.title('Source(t)')
         plt.grid(True)
         plt.show()

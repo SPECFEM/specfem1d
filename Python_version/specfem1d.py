@@ -19,18 +19,18 @@ import numpy as np
 
 from config import Parameter
 from config import Source
-import functions        # Contains fundamental functions
+import functions
 from grid import OneDimensionalGrid
 
-### --- MAIN BODY --- ###
+# --- MAIN BODY --- #
 # Initialization
-param=Parameter()    # Initialize all the parameters of the run. Store them
+param = Parameter()
 grid = OneDimensionalGrid(param)
 if param.plot:
     grid.plot()
 
 param.dt = functions.estimate_timestep(grid, param)
-source=Source(param) # Initialize the source
+source = Source(param)
 if param.plot:
     source.plotSource()
 
@@ -41,8 +41,9 @@ Ke = functions.make_stiffness_matrix(grid, param)
 M = functions.make_mass_matrix(grid, param)
 
 # Time integration
-u=np.zeros(param.nGlob,dtype='d')
-vel,acc=np.zeros_like(u),np.zeros_like(u)
+u = np.zeros(param.nGlob)
+vel = np.zeros_like(u)
+acc = np.zeros_like(u)
 
 if param.plot:
     import matplotlib.pyplot as plt
@@ -55,19 +56,16 @@ if param.axisym and (param.plot or param.snapshot):
 
 # Main time loop :
 for it in range(param.nts):
-    print 'it = ',it,' (t = ',it*param.dt,'s)'
+    print 'it = ', it, ' (t = ', it * param.dt, 's)'
     if it > 0:
         u += param.dt * vel + acc * param.dt**2 / 2
         vel += param.dt / 2 * acc
         acc.fill(0)
 
     for e in range(param.nSpec):
-        acc[param.ibool[e,:]] -= np.dot(Ke[e,:,:], u[param.ibool[e,:]])
+        acc[param.ibool[e, :]] -= np.dot(Ke[e, :, :], u[param.ibool[e, :]])
 
     acc[param.iSource] += source[it*param.dt]
-#    # Boundary conditions :
-#    acc[0] = 0.
-#    acc[len(acc)-1] = 0.
     acc /= M
     vel += param.dt / 2 * acc
 
@@ -82,13 +80,12 @@ for it in range(param.nts):
     if param.plot and it % param.dplot == 0:
         if param.axisym:
             c = np.concatenate((u[:0:-1], u))
-            plt.plot(cz,c)
-            plt.xlim([-max(grid.z),max(grid.z)])
-            plt.ylim([-10,10]) #plt.ylim([0,0.01])
+            plt.plot(cz, c)
+            plt.xlim([-max(grid.z), max(grid.z)])
+            plt.ylim([-10, 10])
             plt.grid(True)
         else:
-            plt.plot(grid.z,u)
-            plt.ylim([-0.10,0.10]) #plt.ylim([0,0.01])
+            plt.plot(grid.z, u)
+            plt.ylim([-0.10, 0.10])
         plt.title("it : {}".format(it))
         plt.draw()
-
