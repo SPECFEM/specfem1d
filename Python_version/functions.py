@@ -12,10 +12,12 @@ import numpy as np
 
 
 def estimate_timestep(grid, param):
-    dzMin=(grid.z[1:]-grid.z[:len(grid.z)-1]).min()
-    dh=param.length/(len(grid.z)-1)
-    vMax = np.sqrt(param.meanMu/param.meanRho).max()
-    dt = param.cfl*dh/vMax # param.CFL*dzMin/vMax # TODO : See why...?!
+    dh = param.length / (len(grid.z) - 1)
+    vMax = np.sqrt(param.meanMu / param.meanRho)
+    dt = param.cfl * dh / vMax
+    # TODO : See why...?!
+    # dzMin = np.diff(grid.z).min()
+    # dt = param.CFL * dzMin / vMax
     return dt
 
 
@@ -24,7 +26,8 @@ def project_inverse(ksi, elt_number, ticks):
        the number of the element to which it belongs (elt_number) and
        the abscissa of the borders of the elements (ticks) returns
        its abscissa onto the interval [zmin, zmax]"""
-    z0=1./2.*((ksi+1.)*ticks[elt_number+1]+(1.-ksi)*ticks[elt_number])
+    z0 = 1. / 2. * ((ksi + 1) * ticks[elt_number + 1] +
+                    (1 - ksi) * ticks[elt_number])
     return z0
 
 
@@ -41,16 +44,16 @@ def make_stiffness_matrix(grid, param):
             ngllj = param.nGLL
             deriv = param.deriv
 
-        tmpe = gllj * grid.mu[e,:] * grid.dKsiDx[e,:]**2 * grid.dXdKsi[e,:]
+        tmpe = gllj * grid.mu[e, :] * grid.dKsiDx[e, :]**2 * grid.dXdKsi[e, :]
         if param.axisym and e != 0:
             tmpe *= project_inverse(param.ksiGLL, e, grid.ticks)
 
         for i in range(ngllj):
-            tmpi = deriv[i,:] * tmpe
+            tmpi = deriv[i, :] * tmpe
             if param.axisym and e != 0:
                 tmpi /= project_inverse(param.ksiGLL[i], e, grid.ticks)
 
-            Ke[e,i,:] = np.inner(tmpi, deriv)
+            Ke[e, i, :] = np.inner(tmpi, deriv)
 
     return Ke
 
@@ -63,10 +66,10 @@ def make_mass_matrix(grid, param):
     # tried to slice it in.
     for e in range(param.nSpec):
         if param.axisym and e == 0:
-            Me = param.wGLJ * grid.rho[e,:] * grid.dXdKsi[e,:]
+            Me = param.wGLJ * grid.rho[e, :] * grid.dXdKsi[e, :]
         else:
-            Me = param.wGLL * grid.rho[e,:] * grid.dXdKsi[e,:]
+            Me = param.wGLL * grid.rho[e, :] * grid.dXdKsi[e, :]
         # We can still slice along the second index because the individual GLL
         # points are assumed to not repeat a point within an spectral element.
-        M[param.ibool[e,:]] += Me
+        M[param.ibool[e, :]] += Me
     return M

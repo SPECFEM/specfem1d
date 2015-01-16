@@ -12,13 +12,13 @@ import gll
 class OneDimensionalGrid(object):
     """Contains the grid properties"""
 
-    def __init__(self,param):
+    def __init__(self, param):
         """Init"""
-        self.param=param
-        self.z=np.zeros(param.nGlob)
-        self.rho=np.zeros((param.nSpec,param.nGLL))
-        self.mu=np.zeros((param.nSpec,param.nGLL))
-        self.ticks=np.zeros(param.nSpec+1)
+        self.param = param
+        self.z = np.zeros(param.nGlob)
+        self.rho = np.zeros((param.nSpec, param.nGLL))
+        self.mu = np.zeros((param.nSpec, param.nGLL))
+        self.ticks = np.zeros(param.nSpec + 1)
 
         if param.gridType == 'homogeneous':
             self.ticks = np.linspace(0, param.length, param.nSpec + 1)
@@ -47,7 +47,7 @@ class OneDimensionalGrid(object):
         elif param.gridType == 'file':
             self.z, self.rho, self.mu = np.loadtxt(param.gridFile, unpack=True)
             self.ticks = np.loadtxt(param.ticksFile)
-        else :
+        else:
             print "Unknown grid's type"
             raise
         # Jacobians at the GLL (and GLJ for the first element in axisym)

@@ -4,7 +4,6 @@ Functions for working with GLL points.
 """
 
 import numpy as np
-from scipy.interpolate import interp1d
 
 
 # Gauss Lobatto Legendre points and integration weights
