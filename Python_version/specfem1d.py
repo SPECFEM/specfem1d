@@ -15,6 +15,8 @@ Main script for 1D spectral elements.
 @author: Alexis Bottero, CNRS Marseille, France (alexis.bottero@gmail.com)
 """
 
+from __future__ import print_function
+
 import numpy as np
 
 from config import Parameter
@@ -56,7 +58,7 @@ if param.axisym and (param.plot or param.snapshot):
 
 # Main time loop :
 for it in range(param.nts):
-    print 'it = ', it, ' (t = ', it * param.dt, 's)'
+    print('it = %d (t = %f s)' % (it, it * param.dt))
     if it > 0:
         u += param.dt * vel + acc * param.dt**2 / 2
         vel += param.dt / 2 * acc

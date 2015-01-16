@@ -8,6 +8,8 @@ elements simulations.
 @author: Alexis Bottero (alexis.bottero@gmail.com)
 """
 
+from __future__ import print_function
+
 import numpy as np
 
 

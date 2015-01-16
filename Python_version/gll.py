@@ -3,6 +3,8 @@
 Functions for working with GLL points.
 """
 
+from __future__ import print_function
+
 import numpy as np
 
 
