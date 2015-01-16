@@ -171,8 +171,7 @@ class Source(object):
             self.decayRate = param.decayRate
             self.alpha = self.decayRate / self.hdur
         else:
-            print "Unknown source's type"
-            raise
+            raise ValueError('Unknown source type: %s' % (self.typeOfSource, ))
 
     def __getitem__(self, t):
         """What happens when we do source[t]"""

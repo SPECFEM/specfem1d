@@ -39,17 +39,16 @@ class OneDimensionalGrid(object):
             self.z[-1] = self.ticks[-1]
 
         elif param.gridType == 'gradient':
-            print "typeOfGrid == 'gradient' Has not been implemented yet"
-            raise
+            msg = "typeOfGrid == 'gradient' has not been implemented yet"
+            raise NotImplementedError(msg)
         elif param.gridType == 'miscellaneous':
-            print "typeOfGrid == 'miscellaneous' Has not been implemented yet"
-            raise
+            msg = "typeOfGrid == 'miscellaneous' has not been implemented yet"
+            raise NotImplementedError(msg)
         elif param.gridType == 'file':
             self.z, self.rho, self.mu = np.loadtxt(param.gridFile, unpack=True)
             self.ticks = np.loadtxt(param.ticksFile)
         else:
-            print "Unknown grid's type"
-            raise
+            raise ValueError('Unknown grid type: %s' % (param.gridType, ))
         # Jacobians at the GLL (and GLJ for the first element in axisym)
         # points (arrays nSpec*(N+1) elements)
         self.dXdKsi = gll.jacobian(self.ticks, param)
