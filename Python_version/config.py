@@ -12,7 +12,7 @@ is implemented.
 @author: Alexis Bottero (alexis.bottero@gmail.com)
 """
 
-from __future__ import print_function
+from __future__ import (division, print_function)
 
 import argparse
 try:
