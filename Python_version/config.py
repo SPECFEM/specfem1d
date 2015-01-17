@@ -89,7 +89,12 @@ class Parameter(object):
             'DPLOT': 10,
         })
         with open('Par_file') as f:
-            cp.readfp(FakeGlobalSectionHead(f))
+            try:
+                # Python 3
+                cp.read_string('[global]\n' + f.read(), source='Par_file')
+            except AttributeError:
+                # Python 2
+                cp.readfp(FakeGlobalSectionHead(f))
 
         self.axisym = cp.getboolean('global', 'AXISYM')
         self.length = cp.getfloat('global', 'LENGTH')
