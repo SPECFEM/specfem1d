@@ -12,6 +12,8 @@ is implemented.
 @author: Alexis Bottero (alexis.bottero@gmail.com)
 """
 
+from __future__ import (absolute_import, division, print_function)
+
 import argparse
 try:
     # Python 3
@@ -87,7 +89,12 @@ class Parameter(object):
             'DPLOT': 10,
         })
         with open('Par_file') as f:
-            cp.readfp(FakeGlobalSectionHead(f))
+            try:
+                # Python 3
+                cp.read_string('[global]\n' + f.read(), source='Par_file')
+            except AttributeError:
+                # Python 2
+                cp.readfp(FakeGlobalSectionHead(f))
 
         self.axisym = cp.getboolean('global', 'AXISYM')
         self.length = cp.getfloat('global', 'LENGTH')
@@ -171,8 +178,7 @@ class Source(object):
             self.decayRate = param.decayRate
             self.alpha = self.decayRate / self.hdur
         else:
-            print "Unknown source's type"
-            raise
+            raise ValueError('Unknown source type: %s' % (self.typeOfSource, ))
 
     def __getitem__(self, t):
         """What happens when we do source[t]"""
