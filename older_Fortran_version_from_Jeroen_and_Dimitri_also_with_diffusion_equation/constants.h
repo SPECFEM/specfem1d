@@ -30,7 +30,7 @@
 ! number of GLL points (polynomial degree plus one)
   integer, parameter :: NGLL = 5
 
-! Courant–Friedrichs–Lewy (CFL) stability value
+! Courant-Friedrichs-Lewy (CFL) stability value
 ! see e.g. http://en.wikipedia.org/wiki/Courant%E2%80%93Friedrichs%E2%80%93Lewy_condition
   double precision, parameter :: courant_CFL = 0.45d0
 

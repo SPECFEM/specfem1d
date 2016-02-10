@@ -1,8 +1,8 @@
 
 From: Jeroen Tromp
 To: Dimitri Komatitsch
-Subject: course software 
-Date: Wed, 8 Jan 2003 14:04:45 -0800 
+Subject: course software
+Date: Wed, 8 Jan 2003 14:04:45 -0800
 
 Hi Dimitri:
 

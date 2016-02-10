@@ -219,7 +219,7 @@
   if(assemble_global_stiffness_matrix)then
 
     global_stiffness_matrx = 0.
- 
+
     do ispec = 1,NSPEC
       do i = 1,NGLL
              iglob_row = ibool(i,ispec)
@@ -227,16 +227,16 @@
              iglob_rol = ibool(j,ispec)
              element_stiffness_matrix_block = 0.d0
          do i_interior = 1,NGLL
-             jocobianl = jacobian(i_interior,ispec)           
+             jocobianl = jacobian(i_interior,ispec)
              xixl = dxi_dx(i_interior,ispec)
              B_matrix_left = hprime(i_interior,i) * xixl
              B_matrix_right = hprime(i_interior,j) * xixl
              element_stiffness_matrix_block = element_stiffness_matrix_block + &
                                               B_matrix_left * mu(i_interior,ispec) * B_matrix_right * wgll(i_interior) * jocobianl
-         enddo 
+         enddo
              global_stiffness_matrx(iglob_row,iglob_rol) = global_stiffness_matrx(iglob_row,iglob_rol) + &
-                                                                element_stiffness_matrix_block  
-        enddo      
+                                                                element_stiffness_matrix_block
+        enddo
       enddo
     enddo
 
