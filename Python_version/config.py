@@ -99,6 +99,7 @@ class Parameter(object):
                 cp.readfp(FakeGlobalSectionHead(f))
 
         self.axisym = cp.getboolean('global', 'AXISYM')
+        self.boundType = cp.get('global','BOUND_TYPE').strip("'\"")
         self.length = cp.getfloat('global', 'LENGTH')
         self.nSpec = cp.getint('global', 'NSPEC')
         self.N = cp.getint('global', 'N')

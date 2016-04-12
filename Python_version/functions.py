@@ -20,7 +20,7 @@ def estimate_timestep(grid, param):
     # TODO : See why...?!
     # dzMin = np.diff(grid.z).min()
     # dt = param.CFL * dzMin / vMax
-    return dt
+    return dt, dh
 
 
 def project_inverse(ksi, elt_number, ticks):
