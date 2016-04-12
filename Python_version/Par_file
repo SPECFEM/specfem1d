@@ -1,5 +1,11 @@
 AXISYM = True
 
+######################
+# Boundary Condition #
+######################
+#  Boundary's type: Absorbing boundary Condition - 'ABC' or non- Absorbing boundary Condition 'NONE' 
+BOUND_TYPE = 'ABC'
+
 ####################
 # Grid description #
 ####################
