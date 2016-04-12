@@ -31,7 +31,7 @@ grid = OneDimensionalGrid(param)
 if param.plot:
     grid.plot()
 
-param.dt = functions.estimate_timestep(grid, param)
+param.dt, param.dh = functions.estimate_timestep(grid, param)
 source = Source(param)
 if param.plot:
     source.plotSource()
@@ -56,13 +56,28 @@ if param.plot:
 if param.axisym and (param.plot or param.snapshot):
     cz = np.concatenate((-grid.z[:0:-1], grid.z))
 
+# Compute the start index and end index of ABC
+staInx = 0
+endInx = param.nGlob
+if param.boundType == 'ABC':
+    if param.iSource > param.N:
+        staInx = 1
+    if param.iSource < param.nGlob-param.N:
+        endInx = -1
 # Main time loop :
 for it in range(param.nts):
     print('it = %d (t = %f s)' % (it, it * param.dt))
     if it > 0:
-        u += param.dt * vel + acc * param.dt**2 / 2
-        vel += param.dt / 2 * acc
-        acc.fill(0)
+        if param.boundType == 'ABC':
+            u[staInx:endInx] += param.dt * vel[staInx:endInx] + acc[staInx:endInx] * param.dt**2 / 2
+            vel += param.dt / 2 * acc
+            acc.fill(0)
+        elif param.boundType == 'NONE':
+            u += param.dt * vel + acc * param.dt**2 / 2
+            vel += param.dt / 2 * acc
+            acc.fill(0)
+        else:
+             raise ValueError('Unknown type of boundary conditon.')
 
     for e in range(param.nSpec):
         acc[param.ibool[e, :]] -= np.dot(Ke[e, :, :], u[param.ibool[e, :]])
@@ -70,6 +85,12 @@ for it in range(param.nts):
     acc[param.iSource] += source[it*param.dt]
     acc /= M
     vel += param.dt / 2 * acc
+    # process abc boundary condition
+    if param.boundType == 'ABC' :
+        if staInx == 1:
+            u[0] = u[1] + (param.cfl*param.dh-param.dh)/(param.cfl*param.dh+param.dh) * (u[1]-u[0])
+        if endInx == -1:
+            u[-1] = u[-2] + (param.cfl*param.dh-param.dh)/(param.cfl*param.dh+param.dh) * (u[-2]-u[-1])
 
     if param.snapshot and (it % param.snapshot == 0 or it == param.nts - 1):
         name = 'snapshot_forward_normal%05d' % (it, )
@@ -88,6 +109,6 @@ for it in range(param.nts):
             plt.grid(True)
         else:
             plt.plot(grid.z, u)
-            plt.ylim([-0.10, 0.10])
+            # plt.ylim([-0.10, 0.10])
         plt.title("it : {}".format(it))
         plt.draw()
