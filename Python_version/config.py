@@ -51,6 +51,8 @@ class Parameter(object):
         cp = SafeConfigParser(defaults={
             # True if axial symmetry
             'axisym': True,
+            # Boundary's type
+            'BOUND_TYPE':'NONE',
             # "Physical" length of the domain (in meters)
             'LENGTH': 3000,
             # Number of elements
@@ -97,6 +99,7 @@ class Parameter(object):
                 cp.readfp(FakeGlobalSectionHead(f))
 
         self.axisym = cp.getboolean('global', 'AXISYM')
+        self.boundType = cp.get('global','BOUND_TYPE').strip("'\"")
         self.length = cp.getfloat('global', 'LENGTH')
         self.nSpec = cp.getint('global', 'NSPEC')
         self.N = cp.getint('global', 'N')
@@ -133,6 +136,9 @@ class Parameter(object):
         self.ibool = self.make_global_index()
         # Time step (will be updated)
         self.dt = 0
+        # dh (will be updated)
+        self.dh = 0
+
 
         # Gauss Lobatto Legendre points and integration weights:
         try:
