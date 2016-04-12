@@ -51,6 +51,8 @@ class Parameter(object):
         cp = SafeConfigParser(defaults={
             # True if axial symmetry
             'axisym': True,
+            # Boundary's type
+            'BOUND_TYPE':'NONE',
             # "Physical" length of the domain (in meters)
             'LENGTH': 3000,
             # Number of elements
