@@ -13,6 +13,9 @@ Main script for 1D spectral elements.
    The parameters of the run can be edited in the file Par_file
 
 @author: Alexis Bottero, CNRS Marseille, France (alexis.bottero@gmail.com)
+Modified on Wed Apr 6 14:52 2016
+ Add First-order Mur boundary
+@author: Zeming Su, Xi'an Jiaotong University, China (suzeming1992@gmail.com)
 """
 
 from __future__ import (absolute_import, division, print_function)
@@ -85,7 +88,7 @@ for it in range(param.nts):
     acc[param.iSource] += source[it*param.dt]
     acc /= M
     vel += param.dt / 2 * acc
-    # process abc boundary condition
+    # process ABC boundary condition
     if param.boundType == 'ABC' :
         if staInx == 1:
             u[0] = u[1] + (param.cfl*param.dh-param.dh)/(param.cfl*param.dh+param.dh) * (u[1]-u[0])
