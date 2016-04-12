@@ -136,6 +136,9 @@ class Parameter(object):
         self.ibool = self.make_global_index()
         # Time step (will be updated)
         self.dt = 0
+        # dh (will be updated)
+        self.dh = 0
+
 
         # Gauss Lobatto Legendre points and integration weights:
         try:
