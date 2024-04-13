@@ -17,7 +17,7 @@ from __future__ import (absolute_import, division, print_function)
 import argparse
 try:
     # Python 3
-    from configparser import SafeConfigParser
+    from configparser import ConfigParser
 except ImportError:
     # Python 2
     from ConfigParser import SafeConfigParser
@@ -48,7 +48,7 @@ class Parameter(object):
 
     def __init__(self):
         """Init"""
-        cp = SafeConfigParser(defaults={
+        cp = ConfigParser(defaults={
             # True if axial symmetry
             'axisym': True,
             # Boundary's type
